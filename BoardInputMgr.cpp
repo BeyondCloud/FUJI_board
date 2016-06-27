@@ -75,7 +75,7 @@ void pitchBend(int channel ,int LSB,int MSB)
   message[2] = MSB;
   midiout->sendMessage( &message );
 }
-void setPitchBendRange(int channel)
+void setPitchBendRange(int channel,int semitones,int cents)
 {
   message[0] = 176 + channel; 
   message[1] = 101; 
@@ -86,30 +86,37 @@ void setPitchBendRange(int channel)
   message[1] = 100;  
   message[2] = 0; 
   midiout->sendMessage( &message );
-
+//coarse -> ex: Bx 06 02 : set bend range +-2 semitone
   message[0] = 176 + channel;
   message[1] = 6; 
-  message[2] = 2;  
+  message[2] = semitones;  
   midiout->sendMessage( &message );
-  
+//fine 
   message[0] = 176 + channel; 
   message[1] = 38;  
-  message[2] = 4; 
+  message[2] = cents; 
   midiout->sendMessage( &message );
   
 }
-inline void init()
+inline void setMainVolume(int channel,int volume)
 {
   // Control Change: 176, 7, 100 (volume)
-  message[0] = 176; //10110000
+  message[0] = 176 + channel; //10110000
   message[1] = 7;  //7 means control main volume
-  message.push_back( 100 );
+  message.push_back( volume );
+  midiout->sendMessage( &message );
+}
+void selectInstrument(int channel,int instrument)
+{
+  // Send out a series of MIDI messages.
+  // Program change: 192, instrument , N/A
+  message.push_back( 192 + channel );
+  message.push_back( 16 ); //select instrument 1~128 see wiki
+  //third byte is not used for program change
   midiout->sendMessage( &message );
 }
 int main()
 {
-
-
   // Check available ports.
   unsigned int nPorts = midiout->getPortCount();
   if ( nPorts == 0 ) {
@@ -117,21 +124,14 @@ int main()
     goto cleanup;
   }
  // std::cout <<  midiout->getPortName(1);
-
-  // Open first available port.
-  midiout->openPort( 1 );
-
-  // Send out a series of MIDI messages.
-  // Program change: 192, instrument , N/A
-  message.push_back( 193 );
-  message.push_back( 16 ); //select instrument 1~128 see wiki
-  //third byte is not used for program change
-  midiout->sendMessage( &message );
-  init();
+  // port 0 : MS synthesizer
+  // port 1 : fuji_port
+  midiout->openPort( 0 );	
+  selectInstrument(1,16);
+  setMainVolume(1,100);
   noteOn(1,(int)Tone::C4,100);
   sleep(1000);
-
-  setPitchBendRange(1);
+  setPitchBendRange(1,12,0);
   
   for(int i=64 ;i<=127;i++)
   {
@@ -142,70 +142,6 @@ int main()
   pitchBend(1,0,64);
   noteOff(1,(int)Tone::C4,100);
 
-  /*
-  
-  message[0] = 176;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
-  message[1] = 6;  
-  message[2] = 4;
-  midiout->sendMessage( &message );
-
- 
-  // Note On: 144, 60, 90
-  message[0] = 144;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
-  message[1] = 60;  //tone 
-  message[2] = 90;
-  midiout->sendMessage( &message );
-  // NOTE THAT THE PITCH BEND MSB AND LSB'S POSITION SWAP
-  sleep( 500 ); // Platform-dependent ... see example in tests directory.
-  for(int i=64 ;i<=127;i++)
-  {
-      message[0] = 225;   //11100000 pitch bend channel 0
-      message[1] = 0;  //LSB 0~127
-      message[2] = i; //MSB 0~127
-      midiout->sendMessage( &message );
-      sleep( 20 ); // Platform-dependent ... see example in tests directory.
-  }
-//================
-  // Note On: 144, 60, 90
-  message[0] = 145;   //10010000 status byte 1001->note on  0000->cannel 0
-  message[1] = 62;  //tone 
-  message[2] = 90;
-  midiout->sendMessage( &message );
-  // Note Off: 128, 60, 40
-  message[0] = 128;  //10000000 status byte 1000->note off 0000->cannel 0
-  message[1] = 60;  
-  message[2] = 90;
-  midiout->sendMessage( &message );
-
-  // NOTE THAT THE PITCH BEND MSB AND LSB'S POSITION SWAP
-  for(int i=64 ;i<=127;i++)
-  {
-      message[0] = 225;   //224 = 11100000 pitch bend channel 0
-      message[1] = 0;  //LSB 0~127
-      message[2] = i; //MSB 0~127
-      midiout->sendMessage( &message );
-      sleep( 20 ); // Platform-dependent ... see example in tests directory.
-  }
-//================
-  // Note Off: 128, 62, 40
-  message[0] = 129;  //10000000 status byte 1000->note off 0000->cannel 0
-  message[1] = 62;  
-  message[2] = 90;
-  midiout->sendMessage( &message );
-  sleep( 500 ); // Platform-dependent ... see example in tests directory.
-  
-  message[0] = 224;   //224 = 11100000 pitch bend channel 0
-  message[1] = 0;  //LSB 0~127
-  message[2] = 64; //MSB 0~127
-  midiout->sendMessage( &message );
-  message[0] = 225;   //224 = 11100000 pitch bend channel 0
-  message[1] = 0;  //LSB 0~127
-  message[2] = 64; //MSB 0~127
-  midiout->sendMessage( &message );
-
-
-
-*/
   // Clean up
  cleanup:
   delete midiout;
