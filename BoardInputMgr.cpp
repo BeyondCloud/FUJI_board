@@ -50,6 +50,7 @@ void sleep(unsigned int mseconds)
     clock_t goal = mseconds + clock();
     while (goal > clock());
 }
+//return key ID 
 int xPositionToKey(int x)
 {
 	int end = TOTAL_KEY_NUM;
@@ -67,17 +68,6 @@ int xPositionToKey(int x)
    }
     return start;
 }
-/*
-void update_input(blob (&b)[MAX_TOUCH])
-{
-	int play_tone;
-	for(int i=0 ;i<MAX_TOUCH;i++ )
-	{
-		
-	}
-
-}
-*/
 unsigned int blobSizeToVolume(int blobsize)
 {
     unsigned int volume = blobsize * VOLUME_SCALE ;
@@ -102,7 +92,7 @@ void pitchBend(int channel ,int LSB,int MSB)
 {
     message[0] = 224 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
     message[1] = LSB; 
-    message[2] = MSB;
+    message[2] = MSB;  //64 menas no bend
     midiout->sendMessage( &message );
 }
 void setPitchBendRange(int channel,int semitones,int cents)
@@ -145,34 +135,59 @@ void selectInstrument(int channel,int instrument)
     //third byte is not used for program change
     midiout->sendMessage( &message );
 }
+void update_input(blob (&b)[MAX_TOUCH])
+{
+	for(int i=0 ;i<MAX_TOUCH;i++ )
+	{
+		if(b[i].size)
+		{
+			int key = xPositionToKey(b[i].x);
+			int tone_t = key + LOWEST_TONE;
+			int key_width = keyJunctionPos[key+1] - keyJunctionPos[key];
+			int bend = 16384*( b[i].x - keyJunctionPos[key] )/key_width;
+			noteOn(i,tone_t,blobSizeToVolume(b[i].size));		
+			pitchBend(i,(bend & 127),bend>>7);
+		}
+	}
+
+}
+
 int main()
 {
     initKeyJunctionPosition();
-	std::cout<<xPositionToKey(1)<<"\n";
-	std::cout<<xPositionToKey(9)<<"\n";
-	std::cout<<xPositionToKey(27)<<"\n";
-	
-	std::cout<<xPositionToKey(38)<<"\n";
-	std::cout<<xPositionToKey(49)<<"\n";
-	std::cout<<xPositionToKey(256)<<"\n";
-	std::cout<<xPositionToKey(321)<<"\n";
-	std::cout<<xPositionToKey(476)<<"\n";
-	
-	std::cout<<xPositionToKey(328)<<"\n";
-	/*
-    std::cout << blobSizeToVolume(126)<<"\n";
     // Check available ports.
     unsigned int nPorts = midiout->getPortCount();
     if ( nPorts == 0 ) {
-	std::cout << "No ports available!\n";
-	goto cleanup;
+		std::cout << "No ports available!\n";
+		goto cleanup;
     }
     // std::cout <<  midiout->getPortName(1);
     // port 0 : MS synthesizer
     // port 1 : fuji_port
-    midiout->openPort( 0 );	
+    midiout->openPort( 1 );	
     selectInstrument(1,16);
     setMainVolume(1,100);
+	
+	blob b[MAX_TOUCH];
+	b[0].x = 0;
+    b[0].size = 90;
+	b[1].size = 0;
+	b[2].size = 0;
+	b[3].size = 0;
+	b[4].size = 0;
+	update_input(b);
+	for(int i=0 ;i<=18;i++)
+    {
+	  b[0].x = i;
+      update_input(b);
+	  sleep( 100 ); // Platform-dependent ... see example in tests directory.
+    }
+	sleep(3000);
+	b[0].size = 0;
+	update_input(b);
+	
+/*
+
     noteOn(1,(int)Tone::C4,100);
     sleep(1000);
     setPitchBendRange(1,12,0);
@@ -185,7 +200,7 @@ int main()
     sleep(1000);
     pitchBend(1,0,64);
     noteOff(1,(int)Tone::C4,100);
-    */
+*/
     // Clean up
     cleanup:
     delete midiout;
