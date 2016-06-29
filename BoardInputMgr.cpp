@@ -10,10 +10,11 @@
 #define TOTAL_KEY_NUM 29
 #define LOWEST_TONE 48
 #define VOLUME_SCALE 1
+//PM : plus or minus
+#define BEND_RANGE_PM 12
 const float WHIGHT_KEY_LENGTH = KEYBOARD_WIDTH/WIGHT_KEY_NUM; 
 RtMidiOut *midiout = new RtMidiOut();
 std::vector<unsigned char> message;
-
 enum class Tone {C0,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
 		 C1,C1s,D1,D1s,E1,F1,F1s,G1,G1s,A1,A1s,B1,
 		 C2,C2s,D2,D2s,E2,F2,F2s,G2,G2s,A2,A2s,B2,
@@ -27,6 +28,11 @@ enum class Tone {C0,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
 		 C10,C10s,D10,D10s,E10,F10,F10s,G10,G10s,A10,A10s,B10,
 		};
 int keyJunctionPos[TOTAL_KEY_NUM];
+//bend width per key 
+int bpk  = 8192/BEND_RANGE_PM;
+int atkKey[MAX_TOUCH] = {-1};
+int stnKey[MAX_TOUCH] = {-1};
+	
 //unsigned int_8 total_key_num_log_ceil = ceil(log2(TOTAL_KEY_NUM));
 // C3 = 0~18, C3s = 18~36...
 void initKeyJunctionPosition()
@@ -81,18 +87,19 @@ void noteOn(int channel ,int tone,int volume)
     message[2] = volume;
     midiout->sendMessage( &message );
 }
-void noteOff(int channel ,int tone,int volume)
+void noteOff(int channel ,int tone,int velocity)
 {
     message[0] = 128 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
     message[1] = tone; 
-    message[2] = volume;
-    midiout->sendMessage( &message );
+	//velocity can be used for aftertouch supported synthesizer
+    message[2] = velocity; 
+    midiout->sendMessage( &message ); 
 }
 void pitchBend(int channel ,int LSB,int MSB)
 {
     message[0] = 224 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
     message[1] = LSB; 
-    message[2] = MSB;  //64 menas no bend
+    message[2] = MSB;  //64 means no bend
     midiout->sendMessage( &message );
 }
 void setPitchBendRange(int channel,int semitones,int cents)
@@ -126,6 +133,15 @@ inline void setMainVolume(int channel,int volume)
     message.push_back( volume );
     midiout->sendMessage( &message );
 }
+inline void setExpression(int channel,int volume)
+{
+    // Control Change: 176, 7, 100 (volume)
+    message[0] = 176 + channel; //10110000
+    message[1] = 11;  
+    message[2] = volume; 
+ 
+	midiout->sendMessage( &message );
+}
 void selectInstrument(int channel,int instrument)
 {
     // Send out a series of MIDI messages.
@@ -135,19 +151,40 @@ void selectInstrument(int channel,int instrument)
     //third byte is not used for program change
     midiout->sendMessage( &message );
 }
-void update_input(blob (&b)[MAX_TOUCH])
+void updateInput(blob (&b)[MAX_TOUCH])
 {
 	for(int i=0 ;i<MAX_TOUCH;i++ )
 	{
-		if(b[i].size)
+		if(b[i].size != 0)
 		{
-			int key = xPositionToKey(b[i].x);
-			int tone_t = key + LOWEST_TONE;
-			int key_width = keyJunctionPos[key+1] - keyJunctionPos[key];
-			int bend = 16384*( b[i].x - keyJunctionPos[key] )/key_width;
-			noteOn(i,tone_t,blobSizeToVolume(b[i].size));		
-			pitchBend(i,(bend & 127),bend>>7);
+
+			if(atkKey[i]==-1)
+			{
+				atkKey[i] = xPositionToKey(b[i].x);
+				noteOn(i,atkKey[i]+LOWEST_TONE,blobSizeToVolume(b[i].size));
+			}
+			else
+			{
+				stnKey[i] = xPositionToKey(b[i].x);
+				//err: -bend range~ + bend range
+				int err = (stnKey[i] - atkKey[i]);
+				//root : 0,bpk,2*bpk...16384
+				int root =  8192 + bpk * ( abs(err) < BEND_RANGE_PM ? err:BEND_RANGE_PM );
+				int shift = bpk * (b[i].x - stnKey[i])/(keyJunctionPos[i+1]-keyJunctionPos[i]); 
+				int result = root + shift;
+				pitchBend(i,( result & 127),result>>7);
+			}
 		}
+		else
+		{
+			
+			noteOff(i,atkKey[i] + LOWEST_TONE,0);		
+			if(i==0)
+				pitchBend(i,0,64);
+		
+			atkKey[i] = -1;		
+		}
+			
 	}
 
 }
@@ -168,6 +205,8 @@ int main()
     selectInstrument(1,16);
     setMainVolume(1,100);
 	
+	setPitchBendRange(0,BEND_RANGE_PM,0);
+
 	blob b[MAX_TOUCH];
 	b[0].x = 0;
     b[0].size = 90;
@@ -175,21 +214,28 @@ int main()
 	b[2].size = 0;
 	b[3].size = 0;
 	b[4].size = 0;
-	update_input(b);
-	for(int i=0 ;i<=18;i++)
+	updateInput(b);
+	sleep(500);
+	for(int i=0 ;i<=200;i++)
     {
 	  b[0].x = i;
-      update_input(b);
-	  sleep( 100 ); // Platform-dependent ... see example in tests directory.
+      updateInput(b);
+	  sleep( 30 ); // Platform-dependent ... see example in tests directory.
     }
-	sleep(3000);
-	b[0].size = 0;
-	update_input(b);
+    b[0].size = 0;
+    updateInput(b);
+	
+
+
 	
 /*
+		for(int i=127 ;i>=0;i--)
+    {
+      setExpression(1,i);
+      sleep( 100 ); // Platform-dependent ... see example in tests directory.
+    }
 
-    noteOn(1,(int)Tone::C4,100);
-    sleep(1000);
+	sleep(1000);
     setPitchBendRange(1,12,0);
 
     for(int i=64 ;i<=127;i++)
@@ -199,7 +245,8 @@ int main()
     }
     sleep(1000);
     pitchBend(1,0,64);
-    noteOff(1,(int)Tone::C4,100);
+    
+	noteOff(1,(int)Tone::C4,70);
 */
     // Clean up
     cleanup:
