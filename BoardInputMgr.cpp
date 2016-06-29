@@ -147,42 +147,60 @@ void selectInstrument(int channel,int instrument)
     // Send out a series of MIDI messages.
     // Program change: 192, instrument , N/A
     message.push_back( 192 + channel );
-    message.push_back( 16 ); //select instrument 1~128 see wiki
+    message.push_back( instrument ); //select instrument 1~128 see wiki
     //third byte is not used for program change
     midiout->sendMessage( &message );
 }
+template <typename T>
+inline T clip(const T& n, const T& lower, const T& upper) {
+  return std::max(lower, std::min(n, upper));
+}
+template <typename T>
+inline T interpolator(const T& n, const T& delx, const T& dely) {
+  return int((float)n/(float)delx*(float)dely);
+}
+
 void updateInput(blob (&b)[MAX_TOUCH])
 {
-	for(int i=0 ;i<MAX_TOUCH;i++ )
+	for(int chnl=0 ;chnl<MAX_TOUCH;chnl++ )
 	{
-		if(b[i].size != 0)
+		if(b[chnl].size != 0)
 		{
 
-			if(atkKey[i]==-1)
+			if(atkKey[chnl]==-1)
 			{
-				atkKey[i] = xPositionToKey(b[i].x);
-				noteOn(i,atkKey[i]+LOWEST_TONE,blobSizeToVolume(b[i].size));
+				atkKey[chnl] = xPositionToKey(b[chnl].x);
+				noteOn(chnl,atkKey[chnl]+LOWEST_TONE,blobSizeToVolume(b[chnl].size));
 			}
 			else
 			{
-				stnKey[i] = xPositionToKey(b[i].x);
+				stnKey[chnl] = xPositionToKey(b[chnl].x);
 				//err: -bend range~ + bend range
-				int err = (stnKey[i] - atkKey[i]);
-				//root : 0,bpk,2*bpk...16384
-				int root =  8192 + bpk * ( abs(err) < BEND_RANGE_PM ? err:BEND_RANGE_PM );
-				int shift = bpk * (b[i].x - stnKey[i])/(keyJunctionPos[i+1]-keyJunctionPos[i]); 
+				int err   = (stnKey[chnl] - atkKey[chnl]);
+				//root : 0,bpk,2*bpk...(BEND_RANGE_PM -1 )*bpk
+				int root  = 8191 + bpk *  clip(err , -BEND_RANGE_PM,BEND_RANGE_PM-1) ;
+				//0<= shift <=bpk
+				int shift = interpolator( b[chnl].x - keyJunctionPos[stnKey[chnl]],
+										  keyJunctionPos[stnKey[chnl]+1]-keyJunctionPos[stnKey[chnl]],
+					 					  bpk);
 				int result = root + shift;
-				pitchBend(i,( result & 127),result>>7);
+				std::cout<<(result>>7)<<"\t";
+				std::cout<<(result&127)<<"\t";
+				std::cout<<(root)<<"\t";
+				std::cout<<(shift)<<"\t";
+				std::cout<<(  b[chnl].x - keyJunctionPos[stnKey[chnl]])<<"\t";
+				std::cout<<( keyJunctionPos[stnKey[chnl]+1]-keyJunctionPos[stnKey[chnl]])<<"\n";
+				pitchBend(chnl,( result & 127),result>>7);
 			}
 		}
 		else
 		{
 			
-			noteOff(i,atkKey[i] + LOWEST_TONE,0);		
-			if(i==0)
-				pitchBend(i,0,64);
+			noteOff(chnl,atkKey[chnl] + LOWEST_TONE,0);		
+			if(chnl==0)
+				pitchBend(chnl,0,64);
 		
-			atkKey[i] = -1;		
+			atkKey[chnl] = -1;		
 		}
 			
 	}
@@ -201,10 +219,11 @@ int main()
     // std::cout <<  midiout->getPortName(1);
     // port 0 : MS synthesizer
     // port 1 : fuji_port
+
     midiout->openPort( 1 );	
-    selectInstrument(1,16);
-    setMainVolume(1,100);
-	
+    selectInstrument(0,16);
+    setMainVolume(0,100);
+
 	setPitchBendRange(0,BEND_RANGE_PM,0);
 
 	blob b[MAX_TOUCH];
@@ -216,37 +235,31 @@ int main()
 	b[4].size = 0;
 	updateInput(b);
 	sleep(500);
-	for(int i=0 ;i<=200;i++)
+	for(int i=0 ;i<=216;i++)
     {
 	  b[0].x = i;
       updateInput(b);
-	  sleep( 30 ); // Platform-dependent ... see example in tests directory.
+	  sleep( 20 ); // Platform-dependent ... see example in tests directory.
     }
     b[0].size = 0;
     updateInput(b);
-	
 
 
-	
-/*
-		for(int i=127 ;i>=0;i--)
+	/*
+	noteOn(0,(int)Tone::A4,70);
+	sleep(20);
+    for(int i=0 ;i<=120;i+=10)
     {
-      setExpression(1,i);
-      sleep( 100 ); // Platform-dependent ... see example in tests directory.
-    }
-
-	sleep(1000);
-    setPitchBendRange(1,12,0);
-
-    for(int i=64 ;i<=127;i++)
-    {
-      pitchBend(1,0,i);
-      sleep( 20 ); // Platform-dependent ... see example in tests directory.
-    }
-    sleep(1000);
-    pitchBend(1,0,64);
+      pitchBend(0,0,64);
+      sleep( 50 ); // Platform-dependent ... see example in tests directory.
+    pitchBend(0,0,76);
+  sleep( 50 ); // Platform-dependent ... see example in tests directory.
     
-	noteOff(1,(int)Tone::C4,70);
+	}
+    sleep(1000);
+    pitchBend(0,0,64);
+    
+	noteOff(0,(int)Tone::C4,70);
 */
     // Clean up
     cleanup:
