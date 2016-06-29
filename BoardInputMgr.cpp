@@ -12,6 +12,8 @@
 #define VOLUME_SCALE 1
 //PM : plus or minus
 #define BEND_RANGE_PM 12
+//8192 or 64
+#define BEND_RESOLUTION 64
 const float WHIGHT_KEY_LENGTH = KEYBOARD_WIDTH/WIGHT_KEY_NUM; 
 RtMidiOut *midiout = new RtMidiOut();
 std::vector<unsigned char> message;
@@ -29,7 +31,7 @@ enum class Tone {C0,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
 		};
 int keyJunctionPos[TOTAL_KEY_NUM];
 //bend width per key 
-int bpk  = 8192/BEND_RANGE_PM;
+int bpk  = BEND_RESOLUTION/BEND_RANGE_PM;
 int atkKey[MAX_TOUCH] = {-1};
 int stnKey[MAX_TOUCH] = {-1};
 	
@@ -178,20 +180,32 @@ void updateInput(blob (&b)[MAX_TOUCH])
 				//err: -bend range~ + bend range
 				int err   = (stnKey[chnl] - atkKey[chnl]);
 				//root : 0,bpk,2*bpk...(BEND_RANGE_PM -1 )*bpk
+				int root = 63 +  bpk *  clip(err , -BEND_RANGE_PM,BEND_RANGE_PM-1);
+				int shift = interpolator( b[chnl].x - keyJunctionPos[stnKey[chnl]],
+										  keyJunctionPos[stnKey[chnl]+1]-keyJunctionPos[stnKey[chnl]],
+					 					  bpk);
+				int result = root + shift;
+				pitchBend(chnl,0,result);
+/* for 16384 resolution supported synthesizer
 				int root  = 8191 + bpk *  clip(err , -BEND_RANGE_PM,BEND_RANGE_PM-1) ;
 				//0<= shift <=bpk
 				int shift = interpolator( b[chnl].x - keyJunctionPos[stnKey[chnl]],
 										  keyJunctionPos[stnKey[chnl]+1]-keyJunctionPos[stnKey[chnl]],
 					 					  bpk);
 				int result = root + shift;
+				pitchBend(chnl,( result & 127),result>>7);
+*/				
+/*
+				//=======debug info=============
 				std::cout<<(result>>7)<<"\t";
 				std::cout<<(result&127)<<"\t";
 				std::cout<<(root)<<"\t";
 				std::cout<<(shift)<<"\t";
 				std::cout<<(  b[chnl].x - keyJunctionPos[stnKey[chnl]])<<"\t";
 				std::cout<<( keyJunctionPos[stnKey[chnl]+1]-keyJunctionPos[stnKey[chnl]])<<"\n";
-				pitchBend(chnl,( result & 127),result>>7);
-			}
+				//=============================
+*/
+				}
 		}
 		else
 		{
@@ -235,13 +249,14 @@ int main()
 	b[4].size = 0;
 	updateInput(b);
 	sleep(500);
-	for(int i=0 ;i<=216;i++)
+	for(int i=0 ;i<=198;i++)
     {
 	  b[0].x = i;
       updateInput(b);
 	  sleep( 20 ); // Platform-dependent ... see example in tests directory.
     }
-    b[0].size = 0;
+   	sleep(500);
+   	b[0].size = 0;
     updateInput(b);
 
 
