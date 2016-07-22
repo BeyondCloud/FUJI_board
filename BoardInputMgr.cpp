@@ -14,10 +14,10 @@
 #define BEND_RANGE_PM 12
 //8192 or 64
 #define BEND_RESOLUTION 64
-const float WHIGHT_KEY_LENGTH = KEYBOARD_WIDTH/WIGHT_KEY_NUM; 
+const float WHIGHT_KEY_LENGTH = KEYBOARD_WIDTH/WIGHT_KEY_NUM;
 RtMidiOut *midiout = new RtMidiOut();
 std::vector<unsigned char> message;
-enum class Tone {C0,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
+enum class Tone{C0=12,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
 		 C1,C1s,D1,D1s,E1,F1,F1s,G1,G1s,A1,A1s,B1,
 		 C2,C2s,D2,D2s,E2,F2,F2s,G2,G2s,A2,A2s,B2,
 		 C3,C3s,D3,D3s,E3,F3,F3s,G3,G3s,A3,A3s,B3,
@@ -30,11 +30,11 @@ enum class Tone {C0,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
 		 C10,C10s,D10,D10s,E10,F10,F10s,G10,G10s,A10,A10s,B10,
 		};
 int keyJunctionPos[TOTAL_KEY_NUM];
-//bend width per key 
+//bend width per key
 int bpk  = BEND_RESOLUTION/BEND_RANGE_PM;
 int atkKey[MAX_TOUCH] = {-1};
 int stnKey[MAX_TOUCH] = {-1};
-	
+
 //unsigned int_8 total_key_num_log_ceil = ceil(log2(TOTAL_KEY_NUM));
 // C3 = 0~18, C3s = 18~36...
 void initKeyJunctionPosition()
@@ -49,17 +49,16 @@ struct blob {
     int size;
 };
 struct note{
-    int x;
-    int y;
-    int size;
+    int tone;
+	int shift;
 };
 void sleep(unsigned int mseconds)
 {
     clock_t goal = mseconds + clock();
     while (goal > clock());
 }
-//return key ID 
-int xPositionToKey(int x)
+//return key ID
+inline int xPositionToKey(int x)
 {
 	int end = TOTAL_KEY_NUM;
 	int start = 0;
@@ -70,9 +69,9 @@ int xPositionToKey(int x)
 	   //fast start + floor((end-start)/2)
 	   mid = start + ((end-start)>>1);
 	   if( keyJunctionPos[mid] > x)
-		   end = mid;
-	   else 
-		   start = mid;
+			end = mid;
+	   else
+			start = mid;
    }
     return start;
 }
@@ -85,47 +84,47 @@ unsigned int blobSizeToVolume(int blobsize)
 void noteOn(int channel ,int tone,int volume)
 {
     message[0] = 144 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
-    message[1] = tone; 
+    message[1] = tone;
     message[2] = volume;
     midiout->sendMessage( &message );
 }
 void noteOff(int channel ,int tone,int velocity)
 {
     message[0] = 128 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
-    message[1] = tone; 
+    message[1] = tone;
 	//velocity can be used for aftertouch supported synthesizer
-    message[2] = velocity; 
-    midiout->sendMessage( &message ); 
+    message[2] = velocity;
+    midiout->sendMessage( &message );
 }
 void pitchBend(int channel ,int LSB,int MSB)
 {
     message[0] = 224 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
-    message[1] = LSB; 
+    message[1] = LSB;
     message[2] = MSB;  //64 means no bend
     midiout->sendMessage( &message );
 }
 void setPitchBendRange(int channel,int semitones,int cents)
 {
-    message[0] = 176 + channel; 
-    message[1] = 101; 
-    message[2] = 0; 
+    message[0] = 176 + channel;
+    message[1] = 101;
+    message[2] = 0;
     midiout->sendMessage( &message );
 
-    message[0] = 176 + channel; 
-    message[1] = 100;  
-    message[2] = 0; 
+    message[0] = 176 + channel;
+    message[1] = 100;
+    message[2] = 0;
     midiout->sendMessage( &message );
     //coarse -> ex: Bx 06 02 : set bend range +-2 semitone
     message[0] = 176 + channel;
-    message[1] = 6; 
-    message[2] = semitones;  
+    message[1] = 6;
+    message[2] = semitones;
     midiout->sendMessage( &message );
-    //fine 
-    message[0] = 176 + channel; 
-    message[1] = 38;  
-    message[2] = cents; 
+    //fine
+    message[0] = 176 + channel;
+    message[1] = 38;
+    message[2] = cents;
     midiout->sendMessage( &message );
-  
+
 }
 inline void setMainVolume(int channel,int volume)
 {
@@ -139,9 +138,9 @@ inline void setExpression(int channel,int volume)
 {
     // Control Change: 176, 7, 100 (volume)
     message[0] = 176 + channel; //10110000
-    message[1] = 11;  
-    message[2] = volume; 
- 
+    message[1] = 11;
+    message[2] = volume;
+
 	midiout->sendMessage( &message );
 }
 void selectInstrument(int channel,int instrument)
@@ -183,7 +182,7 @@ void updateInput(blob (&b)[MAX_TOUCH])
 				int root = 63 +  bpk *  clip(err , -BEND_RANGE_PM,BEND_RANGE_PM-1);
 				int shift = interpolator( b[chnl].x - keyJunctionPos[stnKey[chnl]],
 										  keyJunctionPos[stnKey[chnl]+1]-keyJunctionPos[stnKey[chnl]],
-					 					  bpk);
+										  bpk);
 				int result = root + shift;
 				pitchBend(chnl,0,result);
 /* for 16384 resolution supported synthesizer
@@ -191,10 +190,10 @@ void updateInput(blob (&b)[MAX_TOUCH])
 				//0<= shift <=bpk
 				int shift = interpolator( b[chnl].x - keyJunctionPos[stnKey[chnl]],
 										  keyJunctionPos[stnKey[chnl]+1]-keyJunctionPos[stnKey[chnl]],
-					 					  bpk);
+										  bpk);
 				int result = root + shift;
 				pitchBend(chnl,( result & 127),result>>7);
-*/				
+*/
 /*
 				//=======debug info=============
 				std::cout<<(result>>7)<<"\t";
@@ -205,24 +204,21 @@ void updateInput(blob (&b)[MAX_TOUCH])
 				std::cout<<( keyJunctionPos[stnKey[chnl]+1]-keyJunctionPos[stnKey[chnl]])<<"\n";
 				//=============================
 */
-				}
+			}
 		}
 		else
 		{
-			
-			noteOff(chnl,atkKey[chnl] + LOWEST_TONE,0);		
-			if(chnl==0)
-				pitchBend(chnl,0,64);
-		
-			atkKey[chnl] = -1;		
-		}
-			
-	}
 
+			noteOff(chnl,atkKey[chnl] + LOWEST_TONE,0);
+			pitchBend(chnl,0,64);
+			atkKey[chnl] = -1;
+		}
+	}
 }
 
 int main()
 {
+	std::cout<<(int)Tone::C1;
     initKeyJunctionPosition();
     // Check available ports.
     unsigned int nPorts = midiout->getPortCount();
@@ -234,14 +230,15 @@ int main()
     // port 0 : MS synthesizer
     // port 1 : fuji_port
 
-    midiout->openPort( 1 );	
+    midiout->openPort( 1 );
     selectInstrument(0,16);
     setMainVolume(0,100);
 
 	setPitchBendRange(0,BEND_RANGE_PM,0);
 
 	blob b[MAX_TOUCH];
-	b[0].x = 0;
+	//0~18 C3 , 18~36 C#
+	b[0].x = 9;
     b[0].size = 90;
 	b[1].size = 0;
 	b[2].size = 0;
@@ -249,15 +246,23 @@ int main()
 	b[4].size = 0;
 	updateInput(b);
 	sleep(500);
+	b[1].x = 81;
+    b[1].size = 90;
+	updateInput(b);
+	sleep(500);
+   	
+	
+/*
 	for(int i=0 ;i<=198;i++)
     {
 	  b[0].x = i;
       updateInput(b);
 	  sleep( 20 ); // Platform-dependent ... see example in tests directory.
     }
-   	sleep(500);
+*/
    	b[0].size = 0;
-    updateInput(b);
+    b[1].size = 0;
+	updateInput(b);
 
 
 	/*
@@ -269,16 +274,16 @@ int main()
       sleep( 50 ); // Platform-dependent ... see example in tests directory.
     pitchBend(0,0,76);
   sleep( 50 ); // Platform-dependent ... see example in tests directory.
-    
+
 	}
     sleep(1000);
     pitchBend(0,0,64);
-    
+
 	noteOff(0,(int)Tone::C4,70);
 */
     // Clean up
     cleanup:
     delete midiout;
     return 0;
-	
+
 }
