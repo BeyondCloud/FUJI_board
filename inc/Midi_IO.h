@@ -36,26 +36,26 @@ private:
 
 };
 LZZ_INLINE void Midi_IO::noteOn (int channel, int tone, int volume)
-        {
-		message[0] = 144 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
-		message[1] = tone; 
-		message[2] = volume;
-		midiout->sendMessage( &message );
-	}
+{
+    message[0] = 144 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
+    message[1] = tone;
+    message[2] = volume;
+    midiout->sendMessage( &message );
+}
 LZZ_INLINE void Midi_IO::noteOff (int channel, int tone, int velocity)
-        {
-		message[0] = 128 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
-		message[1] = tone; 
-		//velocity can be used for aftertouch supported synthesizer
-		message[2] = velocity; 
-		midiout->sendMessage( &message ); 
-	}
+{
+    message[0] = 128 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
+    message[1] = tone;
+    //velocity can be used for aftertouch supported synthesizer
+    message[2] = velocity;
+    midiout->sendMessage( &message );
+}
 LZZ_INLINE void Midi_IO::pitchBend (int channel, int LSB, int MSB)
-        {
-		message[0] = 224 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
-		message[1] = LSB; 
-		message[2] = MSB;  //64 means no bend
-		midiout->sendMessage( &message );
-	}
+{
+    message[0] = 224 + channel;   //144 = 10010000 status byte 1001->note on  0000->cannel 0
+    message[1] = LSB;
+    message[2] = MSB;  //64 means no bend
+    midiout->sendMessage( &message );
+}
 #undef LZZ_INLINE
 #endif

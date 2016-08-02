@@ -3,29 +3,34 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "../config.h"
+#include "../myStruct.h"
+#include "../Midi_IO.h"
+
+#include <iostream>
+#include <math.h>
 #ifndef LZZ_SynthMgr_h
 #define LZZ_SynthMgr_h
 #define LZZ_INLINE inline
-extern int threshold_value;
-extern int threshold_type;
 using namespace cv;
-
+using namespace std;
 class SynthMgr
 {
-    struct note_t
-    {
-    int tone;
-    int bend;
-    };
+
     public:
       SynthMgr ();
       template <typename T, size_t N>
       void record_valid_rows (Mat & Img, T (& valid_y) [N]);
+      void blob2midi(const blob_t (&blob_tbl)[MAX_TOUCH]);
       Mat Img;
-      note_t **note;
+      note_t **note_tbl;
     private:
-      static bool (valid_y) [CLIP_WIDTH];
+      note_t root_note[MAX_TOUCH];
+      Midi_IO midi_io;
+      static bool (valid_y) [CLIP_HEIGHT];
+      bool isNoteOn[MAX_TOUCH];
 };
+//if the rows of line image contain valid key number
+//mark it as valid row
 template <typename T, size_t N>
 void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
 {
@@ -67,5 +72,54 @@ void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
         pixel_cnt = 0;
     }
 }
+LZZ_INLINE void SynthMgr::blob2midi(const blob_t (&b)[MAX_TOUCH])
+{
+    for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
+    {
+        int vol;
+        if(isNoteOn[chnl] == false)
+        {
+            if(b[chnl].size != 0)
+            {
+                isNoteOn[chnl] = true;
+                root_note[chnl].tone = note_tbl[b[chnl].y][b[chnl].x].tone;
+                root_note[chnl].bend = note_tbl[b[chnl].y][b[chnl].x].bend;
+                midi_io.setExpression(chnl,b[chnl].size);
+                midi_io.noteOn(chnl,root_note[chnl].tone,vol);
+                cout << "channel: " << chnl << " tone: "
+                 << root_note[chnl].tone << " bend: "<< root_note[chnl].bend
+                 <<" vol: " << vol <<" is sended"<< endl;
+            }
+        }
+        else
+        {
+            //clip delta bend between 0~127
+            int bend = max(min(127,64+(bend-root_note[chnl].bend)),0);
+            vol = b[chnl].size;
+            midi_io.pitchBend(chnl,0,bend);
+            midi_io.setExpression(chnl,vol);
+            if(vol == 0)
+            {
+                midi_io.pitchBend(chnl,0,64);
+                midi_io.setExpression(chnl,0);
+                isNoteOn[chnl] = false;
+            }
+        }
+    }
+}
+//LZZ_INLINE void SynthMgr::update(const blob_t (&blob_tbl)[MAX_TOUCH])
+//{
+//    for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
+//    {
+//        if(blob_tbl[chnl].size != 0)
+//        {
+//            blob2midi(chnl,blob_tbl[chnl]);
+//        }
+//        else if(isNoteOn[chnl] == true)
+//        {
+//            midi_io.noteOff(chnl,tone,vol);
+//        }
+//    }
+//}
 #undef LZZ_INLINE
 #endif
