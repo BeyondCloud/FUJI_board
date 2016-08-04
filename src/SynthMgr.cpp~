@@ -63,7 +63,6 @@ SynthMgr::SynthMgr ()
     }
     int ref;
     //handle invalid rows
-    //search downward until valid row found
     for (int  from = 0; from <Img.rows ; from++)
     {
         if(!valid_y[from])
@@ -82,6 +81,16 @@ SynthMgr::SynthMgr ()
 
         }
     }
+    //handle bottom rows
+    for(int i = ref;i<Img.rows;i++)
+    {
+        for (int  x = 0; x <Img.cols ; x++)
+        {
+            note_tbl[i][x].tone = note_tbl[ref][x].tone;
+            note_tbl[i][x].bend = note_tbl[ref][x].bend;
+        }
+        valid_y[i] = true;
+    }
 //    for(int r = 0;r<Img.rows;r++)
 //    {
 //        if(valid_y[r])
@@ -99,4 +108,3 @@ SynthMgr::SynthMgr ()
 
 bool (SynthMgr::valid_y) [CLIP_HEIGHT] = {false};
 #undef LZZ_INLINE
-
