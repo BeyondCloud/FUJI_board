@@ -29,6 +29,7 @@ SynthMgr::SynthMgr ()
         note_tbl[i] = new note_t[Img.cols];
 
     //create tone table with size Img.rows*Img.cols
+    //only valid row will be initialized
     const float bpk = 64.0/(float)BEND_RANGE_PM;
     for (int  y = 0; y <Img.rows ; y++)
     {
@@ -47,7 +48,7 @@ SynthMgr::SynthMgr ()
                 {
                     bw_switch = current_pixel;
                     double key_width = (double)cnt;
-                    while(cnt != -1 )
+                   while(cnt != -1 )
                    {
                        note_tbl[y][x-cnt].tone = current_tone;
                        //48~80
@@ -59,6 +60,48 @@ SynthMgr::SynthMgr ()
                 }
             }
         }
+    }
+    int ref;
+    //handle invalid rows
+    for (int  from = 0; from <Img.rows ; from++)
+    {
+        if(!valid_y[from])
+        {
+            ref=from;
+            while(++ref < Img.rows && !valid_y[ref]){}
+            for(int i = from; i<ref;i++)
+            {
+                for (int  x = 0; x <Img.cols ; x++)
+                {
+                    note_tbl[i][x].tone = note_tbl[ref][x].tone;
+                    note_tbl[i][x].bend = note_tbl[ref][x].bend;
+                }
+                valid_y[i] = true;
+            }
+
+        }
+    }
+    //handle bottom rows
+    for(int i = ref;i<Img.rows;i++)
+    {
+        for (int  x = 0; x <Img.cols ; x++)
+        {
+            note_tbl[i][x].tone = note_tbl[ref][x].tone;
+            note_tbl[i][x].bend = note_tbl[ref][x].bend;
+        }
+        valid_y[i] = true;
+    }
+//    for(int r = 0;r<Img.rows;r++)
+//    {
+//        if(valid_y[r])
+//            cout<<r<<" "<<note_tbl[r][0].tone<<"\n";
+//        else
+//            cout<<r<<" invalid\n";
+//    }
+    if(ref == 0)
+    {
+      cout<<"no valid row\n";
+      cout<<"fail to create tone table\n";
     }
 }
 
