@@ -28,6 +28,8 @@ class SynthMgr
       Midi_IO midi_io;
       static bool (valid_y) [CLIP_HEIGHT];
       bool isNoteOn[MAX_TOUCH];
+      bool exist_valid_row;
+
 };
 //if the rows of line image contain valid key number
 //mark it as valid row
@@ -67,10 +69,12 @@ void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
         if(key_cnt == KEY)
         {
             valid_y[y] = true;
+            exist_valid_row = true;
         }
         key_cnt = 0;
         pixel_cnt = 0;
     }
+
 }
 LZZ_INLINE void SynthMgr::blob2midi(const blob_t (&b)[MAX_TOUCH])
 {

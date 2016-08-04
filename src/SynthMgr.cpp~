@@ -12,7 +12,7 @@ SynthMgr::SynthMgr ()
 {
     for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
         isNoteOn[chnl] = false;
-    Img = imread("line.jpg");
+    Img = imread("linew.jpg");
     if(!Img.data)
     {
         cout << "Error: except line image input\n";
@@ -21,8 +21,14 @@ SynthMgr::SynthMgr ()
     }
     cvtColor(Img,Img,COLOR_RGB2GRAY);
     threshold(Img,Img,120,255,0);//thres value,max,type
+    exist_valid_row = false;
     record_valid_rows(Img,valid_y);
-
+    if(!exist_valid_row)
+    {
+        cout<<"no valid row detected\n";
+        cout<<"fail to create tone table\n";
+        return;
+    }
     //2D note array
     note_tbl = new note_t*[Img.rows];
     for (int i = 0 ; i < Img.rows ; i++)
@@ -63,6 +69,7 @@ SynthMgr::SynthMgr ()
     }
     int ref;
     //handle invalid rows
+    //search downward until valid row found
     for (int  from = 0; from <Img.rows ; from++)
     {
         if(!valid_y[from])
@@ -81,16 +88,6 @@ SynthMgr::SynthMgr ()
 
         }
     }
-    //handle bottom rows
-    for(int i = ref;i<Img.rows;i++)
-    {
-        for (int  x = 0; x <Img.cols ; x++)
-        {
-            note_tbl[i][x].tone = note_tbl[ref][x].tone;
-            note_tbl[i][x].bend = note_tbl[ref][x].bend;
-        }
-        valid_y[i] = true;
-    }
 //    for(int r = 0;r<Img.rows;r++)
 //    {
 //        if(valid_y[r])
@@ -98,13 +95,8 @@ SynthMgr::SynthMgr ()
 //        else
 //            cout<<r<<" invalid\n";
 //    }
-    if(ref == 0)
-    {
-      cout<<"no valid row\n";
-      cout<<"fail to create tone table\n";
-    }
+
 }
-
-
 bool (SynthMgr::valid_y) [CLIP_HEIGHT] = {false};
+
 #undef LZZ_INLINE

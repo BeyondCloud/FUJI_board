@@ -21,8 +21,14 @@ SynthMgr::SynthMgr ()
     }
     cvtColor(Img,Img,COLOR_RGB2GRAY);
     threshold(Img,Img,120,255,0);//thres value,max,type
+    exist_valid_row = false;
     record_valid_rows(Img,valid_y);
-
+    if(!exist_valid_row)
+    {
+        cout<<"no valid row detected\n";
+        cout<<"fail to create tone table\n";
+        return;
+    }
     //2D note array
     note_tbl = new note_t*[Img.rows];
     for (int i = 0 ; i < Img.rows ; i++)
@@ -89,14 +95,8 @@ SynthMgr::SynthMgr ()
 //        else
 //            cout<<r<<" invalid\n";
 //    }
-    if(ref == 0)
-    {
-      cout<<"no valid row\n";
-      cout<<"fail to create tone table\n";
-    }
+
 }
-
-
 bool (SynthMgr::valid_y) [CLIP_HEIGHT] = {false};
-#undef LZZ_INLINE
 
+#undef LZZ_INLINE
