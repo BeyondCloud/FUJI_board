@@ -9,10 +9,10 @@ Midi_IO::Midi_IO ()
 {
 	midiout = new RtMidiOut();
     midiout->openPort( 0 );
-    for(int chnl =0;chnl<1;chnl++)
+    for(int chnl =0;chnl<MAX_TOUCH;chnl++)
     {
         selectInstrument(chnl,16);
-        setMainVolume(chnl,50);
+        setMainVolume(chnl,127);
         setExpression(chnl,127);
         setPitchBendRange(chnl,BEND_RANGE_PM,0);
     }
@@ -61,15 +61,6 @@ void Midi_IO::setMainVolume (int chnl,int volume)
     message.push_back(volume);
     midiout->sendMessage( &message );
     std::cout <<"channel "<<chnl<< " main volume set to "<< volume <<"\n";
-}
-void Midi_IO::setExpression (int chnl, int volume)
-{
-    message.clear();
-    std::cout << "Channel "<< chnl <<" expression set to "<< volume <<"\n";
-    message.push_back(176+chnl);
-    message.push_back(11);
-    message.push_back(volume);
-    midiout->sendMessage( &message );
 }
 void Midi_IO::selectInstrument (int channel, int instrument)
 {

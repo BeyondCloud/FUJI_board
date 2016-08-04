@@ -58,6 +58,15 @@ LZZ_INLINE void Midi_IO::pitchBend (int channel, int LSB, int MSB)
     message.push_back(MSB);//note volume , note channel
     midiout->sendMessage( &message );
 }
+LZZ_INLINE void Midi_IO::setExpression (int chnl, int volume)
+{
+    message.clear();
+    std::cout << "Channel "<< chnl <<" expression set to "<< volume <<"\n";
+    message.push_back(176+chnl);
+    message.push_back(11);
+    message.push_back(volume);
+    midiout->sendMessage( &message );
+}
 #undef LZZ_INLINE
 #endif
 
