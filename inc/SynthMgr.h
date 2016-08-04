@@ -24,7 +24,7 @@ class SynthMgr
       Mat Img;
       note_t **note_tbl;
     private:
-      note_t root_note[MAX_TOUCH];
+      note_t onStrike[MAX_TOUCH];
       Midi_IO midi_io;
       static bool (valid_y) [CLIP_HEIGHT];
       bool isNoteOn[MAX_TOUCH];
@@ -76,50 +76,47 @@ LZZ_INLINE void SynthMgr::blob2midi(const blob_t (&b)[MAX_TOUCH])
 {
     for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
     {
-        int vol;
         if(isNoteOn[chnl] == false)
         {
-            if(b[chnl].size != 0)
+            int velocity = min(b[chnl].size,127);
+            //note on event
+            if(velocity != 0)
             {
                 isNoteOn[chnl] = true;
-                root_note[chnl].tone = note_tbl[b[chnl].y][b[chnl].x].tone;
-                root_note[chnl].bend = note_tbl[b[chnl].y][b[chnl].x].bend;
-                midi_io.setExpression(chnl,b[chnl].size);
-                midi_io.noteOn(chnl,root_note[chnl].tone,vol);
+                onStrike[chnl].tone = note_tbl[b[chnl].y][b[chnl].x].tone;
+                onStrike[chnl].bend = note_tbl[b[chnl].y][b[chnl].x].bend;
+                midi_io.setExpression(chnl,velocity);
+                midi_io.noteOn(chnl,onStrike[chnl].tone,velocity);
+                /*
                 cout << "channel: " << chnl << " tone: "
-                 << root_note[chnl].tone << " bend: "<< root_note[chnl].bend
-                 <<" vol: " << vol <<" is sended"<< endl;
+                 << onStrike[chnl].tone << " bend: "<< onStrike[chnl].bend
+                 <<" velocity: " << velocity<<" is sended"<< endl;
+                */
             }
         }
         else
         {
-            //clip delta bend between 0~127
-            int bend = max(min(127,64+(bend-root_note[chnl].bend)),0);
-            vol = b[chnl].size;
-            midi_io.pitchBend(chnl,0,bend);
-            midi_io.setExpression(chnl,vol);
-            if(vol == 0)
+            int volume = min(b[chnl].size,127);
+            //note off event
+            if(volume == 0)
             {
                 midi_io.pitchBend(chnl,0,64);
-                midi_io.setExpression(chnl,0);
+                midi_io.noteOff(chnl,onStrike[chnl].tone,volume);
                 isNoteOn[chnl] = false;
             }
+            //note playing event
+            else
+            {
+                int bend = note_tbl[b[chnl].y][b[chnl].x].bend;
+                //clamp bend value between 0~127
+                bend = max(min(127,64+(bend-onStrike[chnl].bend)),0);
+                midi_io.pitchBend(chnl,0,bend);
+                midi_io.setExpression(chnl,volume);
+            }
+
         }
     }
 }
-//LZZ_INLINE void SynthMgr::update(const blob_t (&blob_tbl)[MAX_TOUCH])
-//{
-//    for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
-//    {
-//        if(blob_tbl[chnl].size != 0)
-//        {
-//            blob2midi(chnl,blob_tbl[chnl]);
-//        }
-//        else if(isNoteOn[chnl] == true)
-//        {
-//            midi_io.noteOff(chnl,tone,vol);
-//        }
-//    }
-//}
+
 #undef LZZ_INLINE
 #endif

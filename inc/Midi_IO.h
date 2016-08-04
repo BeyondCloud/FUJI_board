@@ -18,7 +18,7 @@ class Midi_IO
     void setExpression (int chnl, int volume);
     void selectInstrument (int channel, int instrument);
     void cleanUp();
-    enum class Tone {C0,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
+    enum  Tone {C0,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
                  C1,C1s,D1,D1s,E1,F1,F1s,G1,G1s,A1,A1s,B1,
                  C2,C2s,D2,D2s,E2,F2,F2s,G2,G2s,A2,A2s,B2,
                  C3,C3s,D3,D3s,E3,F3,F3s,G3,G3s,A3,A3s,B3,
@@ -34,12 +34,12 @@ class Midi_IO
     RtMidiOut * midiout;
     std::vector <unsigned char> message;
 };
-LZZ_INLINE void Midi_IO::noteOn (int channel, int tone, int volume)
+LZZ_INLINE void Midi_IO::noteOn (int channel, int tone, int velocity)
 {
     message.clear();
     message.push_back(144+channel);
     message.push_back(tone);
-    message.push_back(volume);//note volume , note channel
+    message.push_back(velocity);//velocity of key strike,
     midiout->sendMessage( &message );
 }
 LZZ_INLINE void Midi_IO::noteOff (int channel, int tone, int volume)
