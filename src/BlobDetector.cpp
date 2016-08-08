@@ -1,6 +1,7 @@
 // BlobDetector.cpp
 //
-
+#include <opencv2/opencv.hpp>
+using namespace cv;
 #include "BlobDetector.h"
 #define LZZ_INLINE inline
 BlobDetector::BlobDetector ()
@@ -30,19 +31,16 @@ BlobDetector::BlobDetector ()
         pDefaultBLOB.filterByConvexity = false;
         pDefaultBLOB.minConvexity = 0.95f;
         pDefaultBLOB.maxConvexity = (float)1e37;
-
-        for (int i = 0; i<65536; i++)
-            palette.push_back(Vec3b((uchar)rand(), (uchar)rand(), (uchar)rand()));
+        backGround = Mat(CLIP_HEIGHT,CLIP_WIDTH,CV_8UC1);
+//       for (int i = 0; i<65536; i++)
+//           palette.push_back(Vec3b((uchar)rand(), (uchar)rand(), (uchar)rand()));
         pBLOB.push_back(pDefaultBLOB);
         b = SimpleBlobDetector::create(*pBLOB.begin());
         sbd = b.dynamicCast<SimpleBlobDetector>();
     }
-void BlobDetector::resetBackground ()
+void BlobDetector::resetBackground (Mat &src)
     {
-        Mat bg;
-        cap>>bg;
-        imshow("background",bg);
-        cvtColor(bg, bg, CV_BGR2GRAY);
-        backGround = bg;
+        imshow("background",src);
+        backGround = src;
     }
 #undef LZZ_INLINE

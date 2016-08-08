@@ -1,37 +1,33 @@
 // BlobDetector.h
 //
-#include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 #include <opencv2/opencv.hpp>
 #include <vector>
-#include <map>
-#include <iostream>
-#include <conio.h>
-#include <ctime>
 #include "myStruct.h"
 #include "config.h"
 #ifndef LZZ_BlobDetector_h
 #define LZZ_BlobDetector_h
 #define LZZ_INLINE inline
+using namespace cv;
+using namespace std;
 class BlobDetector
 {
 public:
   BlobDetector ();
-  void resetBackground ();
+  void resetBackground (Mat &src);
   void detect (Mat & src);
   blob_t (blob) [MAX_TOUCH];
 private:
   SimpleBlobDetector::Params pDefaultBLOB;
+  vector< Vec3b >  palette;
   vector <SimpleBlobDetector::Params> pBLOB;
   vector <SimpleBlobDetector::Params>::iterator itBLOB;
-  Ptr <Feature2D> b;
   vector <KeyPoint> keyImg;
+  vector <KeyPoint>::iterator k;
   Mat backGround;
   Mat result;
+  Ptr <Feature2D> b;
   Ptr <SimpleBlobDetector> sbd;
-  vector <KeyPoint>::iterator k;
 };
 LZZ_INLINE void BlobDetector::detect (Mat & src)
 {
