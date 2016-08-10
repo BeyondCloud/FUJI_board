@@ -16,8 +16,8 @@ public:
     BlobDetector ();
     void resetBackground (Mat &src);
     void detect (Mat & src);
-    blob_t blob[MAX_TOUCH];
-
+    blob_t blob;
+    vector<blob_t> blobs;
 private:
     void debug_draw(Mat &src);
     SimpleBlobDetector::Params pDefaultBLOB;
@@ -25,10 +25,8 @@ private:
     vector <SimpleBlobDetector::Params> pBLOB;
     vector <SimpleBlobDetector::Params>::iterator itBLOB;
     vector <KeyPoint> keyImg;
-    vector <KeyPoint>::iterator k;
 //    vector< Vec3b >  palette;
     Mat backGround;
-    Mat debug_Img;
     Ptr <Feature2D> b;
     Ptr <SimpleBlobDetector> sbd;
 };
@@ -42,24 +40,24 @@ LZZ_INLINE void BlobDetector::detect (Mat & src)
 
 	//iterate over each detected center and draw circle
 	//Circle(src, center, radius, color, thickness=1, lineType=8, shift=0)
-	int index=0;
-	for(int i = 0 ; i < MAX_TOUCH;i++)
-		blob[i].size = 0;
-	for (k = keyImg.begin(); k != keyImg.end(); k++)
+	blobs.clear();
+
+	for (unsigned int i = 0; i < keyImg.size(); i++)
 	{
 //            circle(src, k->pt, (int)k->size, palette[i % 65536],3);
 //            sprintf(sizeTxt,"%d", (int)k->size);
 //            putText(src,sizeTxt ,k->pt, FONT_HERSHEY_DUPLEX,2,Scalar(255,255,255));
-		index   = k-keyImg.begin();
-	   if(index < MAX_TOUCH && index >=0)
+	   if( i < MAX_TOUCH)
 		{
-			blob[index].x = k->pt.x;
-			cout<<"x"<<blob[index].x<<endl;
-			blob[index].y = k->pt.y;
-			blob[index].size = (int)k->size;
+			blob.x = keyImg[i].pt.x;
+			blob.y = keyImg[i].pt.y;
+			blob.size = (int)keyImg[i].size;
+			blobs.push_back(blob);
 		}
+
 	}
-	      debug_draw(src);
+
+	//      debug_draw(src);
 
 }
 #undef LZZ_INLINE

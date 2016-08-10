@@ -5,6 +5,10 @@ struct blob_t
     int x;
     int y;
     int size;
+    blob_t()
+    {
+        size = 0;
+    }
 };
 struct note_t
 {

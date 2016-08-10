@@ -40,17 +40,16 @@ void BlobDetector::resetBackground (Mat &src)
 void BlobDetector::debug_draw(Mat &src)
 {
     char sizeTxt[7] = "";
-    src.copyTo(debug_Img);
     //Circle(src, center, radius, color, thickness=1, lineType=8, shift=0)
-	for (k = keyImg.begin(); k != keyImg.end(); k++)
+	for (unsigned int i = 0; i < blobs.size(); i++)
 	{
-	    int index   = k-keyImg.begin();
-        Point p = Point(k->pt.x,k->pt.y);
-        circle(debug_Img,p, (int)k->size, 255,3);
+        Point p = Point(blobs[i].x,blobs[i].y);
+        circle(src,p, blobs[i].size, 255,3);
 
-        sprintf(sizeTxt,"%d",index);
-        putText(debug_Img,sizeTxt ,p, FONT_HERSHEY_DUPLEX,2,Scalar(255,255,255));
+        sprintf(sizeTxt,"%d",i);
+        putText(src,sizeTxt ,p, FONT_HERSHEY_DUPLEX,2,Scalar(255,255,255));
     }
-    imshow("result",debug_Img);
+    cout<<"x"<<blobs[0].x<<"y"<<blobs[0].y<<endl;
+    imshow("result",src);
 }
 #undef LZZ_INLINE

@@ -7,6 +7,7 @@
 #include <conio.h>
 #include <windows.h>
 #include <time.h>
+#include <math.h>
 #include "myStruct.h"
 #include "SynthMgr.h"
 #include "FeyeMgr.h"
@@ -27,20 +28,102 @@ void cap_init()
     cap.set(CV_CAP_PROP_FRAME_WIDTH,1280);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT,720);
 }
+int getID(int &ID)
+{
+    ID = (ID+1)%MAX_TOUCH;
+    return ID;
+}
 int main(int argc, const char** argv)
 {
+    /*
+    vector <blob_t> blob_prev;
+    vector <blob_t> blob_tmp;
+    vector <blob_t> blob_cur;
+    blob_t b,asdf;
+    b.x = 100;
+    b.y = 300;
+    b.size = 10;
+    blob_prev.push_back(b);
+    b.x = 200;
+    b.y = 300;
+    b.size = 20;
+    blob_prev.push_back(b);
+    b.x = 300;
+    b.y = 300;
+    b.size = 30;
+    blob_prev.push_back(b);
 
+
+    b.x = 110;
+    b.y = 300;
+    b.size = 10;
+    blob_cur.push_back(b);
+    b.x = 200;
+    b.y = 310;
+    b.size = 20;
+    blob_cur.push_back(b);
+    b.x = 400;
+    b.y = 300;
+    b.size = 40;
+    blob_cur.push_back(b);
+
+
+    blob_tmp = blob_prev;
+
+    int cnt = 0;
+
+   //0 1 playing 2 off 3 on
+    for(unsigned int i = 0;i<blob_tmp.size();i++)
+    {
+        for(unsigned int j = 0;j < blob_cur.size(); j++)
+        {
+            cnt++;
+            //playing state
+            if( (blob_cur[j].x- blob_tmp[i].x ) < GROUP_RANGE_X)
+            {
+                blob_cur.erase (blob_cur.begin()+j);
+                blob_tmp.erase(blob_tmp.begin()+i);
+                break;
+            }
+        }
+    }
+    //note off
+    for(unsigned int i = 0;i<blob_tmp.size();i++)
+    {
+
+    }
+    //note on
+    for(unsigned int i = 0;i<blob_cur.size();i++)
+    {
+    }
+*/
+
+    Mat prev_frame = imread("prev.jpg");
+    Mat cur_frame = imread("current.jpg");
+    Mat bg = imread("bg.jpg");
+    cvtColor(bg,bg,CV_BGR2GRAY);
+    cvtColor(prev_frame,prev_frame,CV_BGR2GRAY);
+    cvtColor(cur_frame,cur_frame,CV_BGR2GRAY);
+    BlobDetector blobdtr;
+    blobdtr.resetBackground(bg);
+    //blobdtr.detect(prev_frame);
+    blobdtr.detect(cur_frame);
+    blobdtr.detect(prev_frame);
+    imshow("prev",prev_frame);
+    imshow("cur",cur_frame);
+    waitKey();
+
+/*
     Mat frame;
-
     cap_init();
     FeyeMgr feyeMgr(cap.get(CV_CAP_PROP_FRAME_HEIGHT),cap.get(CV_CAP_PROP_FRAME_WIDTH));
  //   SynthMgr synthMgr;
     BlobDetector blobdtr;
-    bool is_running = false;
+    bool is_running = true;
     Mat bg = imread("bg.jpg");
     cvtColor(bg,bg,CV_BGR2GRAY);
     blobdtr.resetBackground(bg);
-    while(!is_running)
+    while(is_running)
     {
         waitKey(2);
         cap>>frame;
@@ -54,65 +137,13 @@ int main(int argc, const char** argv)
             switch (_getch())
             {
                 case 'e':
-                    is_running = true;
+                    is_running = false;
                     break;
                 case 's':
                     blobdtr.resetBackground(feyeMgr.defish_Img);
                     break;
             }
         }
-    }
-
-/*
-    while(true)
-    {
-        waitKey(2);
-        if (_kbhit() )
-        {
-            switch (_getch())
-            {
-                case 'e':
-                    cap.release();
-                    cout << "Release camera\n";
-                    return -1;
-                    break;
-            }
-        }
-        cap>>frame;
-        cvtColor(frame,frame,CV_BGR2GRAY);
-        feyeMgr.defishNcrop(frame);
-        imshow("frame",feyeMgr.defish_Img);
-    }
-*/
-
-    /*
-    Mat frame,crop;
-    BlobDetector blobDtr;
-   Rect myROI(0,0,CLIP_WIDTH,CLIP_HEIGHT);
-  while(true){
-    cap>>frame;
-    Mat(frame,myROI).copyTo(crop);
-    cvtColor(crop,crop, CV_BGR2GRAY);
-        if (_kbhit() )
-		{
-			switch (_getch())
-			{
-                case 's':
-                    blobDtr.resetBackground(crop);
-                    break;
-                case 'e':
-                    cap.release();
-                    cout << "Release camera\n";
-					return -1;
-					break;
-			}
-		}
-        blobDtr.detect(crop);
-        for(int i =0;i<MAX_TOUCH;i++)
-            cout<<blobDtr.blob[i].size<<"\t";
-        cout<<endl;
-        waitKey(2);
-
     }
 */
     return 0;

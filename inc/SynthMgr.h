@@ -20,7 +20,7 @@ class SynthMgr
       SynthMgr ();
       template <typename T, size_t N>
       void record_valid_rows (Mat & Img, T (& valid_y) [N]);
-      void blob2midi(const blob_t (&blob_tbl)[MAX_TOUCH]);
+      void blob2midi(vector<blob_t> &blobs);
       Mat Img;
       int valid_row_cnt;
       note_t **note_tbl;
@@ -79,52 +79,52 @@ void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
     }
 
 }
-LZZ_INLINE void SynthMgr::blob2midi(const blob_t (&b)[MAX_TOUCH])
+LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
 {
-    for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
-    {
-        if(isNoteOn[chnl] == false)
-        {
-            int velocity = min(b[chnl].size,127);
-            //note on event
-            if(velocity != 0)
-            {
-                isNoteOn[chnl] = true;
-                onStrike[chnl].tone = note_tbl[b[chnl].y][b[chnl].x].tone;
-                onStrike[chnl].bend = note_tbl[b[chnl].y][b[chnl].x].bend;
-                midi_io.setExpression(chnl,velocity);
-                midi_io.pitchBend(chnl,0,64);
-                midi_io.noteOn(chnl,onStrike[chnl].tone,velocity);
-                /*
-                cout << "channel: " << chnl << " tone: "
-                 << onStrike[chnl].tone << " bend: "<< onStrike[chnl].bend
-                 <<" velocity: " << velocity<<" is sended"<< endl;
-                */
-            }
-        }
-        else
-        {
-            int volume = min(b[chnl].size,127);
-            cout<<"volume"<<volume<<endl;
-            //note off event
-            if(volume == 0)
-            {
-
-                midi_io.noteOff(chnl,onStrike[chnl].tone,volume);
-                isNoteOn[chnl] = false;
-            }
-            //note playing event
-            else
-            {
-                int bend = note_tbl[b[chnl].y][b[chnl].x].bend;
-                //clamp bend value between 0~127
-                bend = max(min(127,64+(bend-onStrike[chnl].bend)),0);
-                midi_io.pitchBend(chnl,0,bend);
-                midi_io.setExpression(chnl,volume);
-            }
-
-        }
-    }
+//    for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
+//    {
+//        if(isNoteOn[chnl] == false)
+//        {
+//            int velocity = min(b[chnl].size,127);
+//            //note on event
+//            if(velocity != 0)
+//            {
+//                isNoteOn[chnl] = true;
+//                onStrike[chnl].tone = note_tbl[b[chnl].y][b[chnl].x].tone;
+//                onStrike[chnl].bend = note_tbl[b[chnl].y][b[chnl].x].bend;
+//                midi_io.setExpression(chnl,velocity);
+//                midi_io.pitchBend(chnl,0,64);
+//                midi_io.noteOn(chnl,onStrike[chnl].tone,velocity);
+//                /*
+//                cout << "channel: " << chnl << " tone: "
+//                 << onStrike[chnl].tone << " bend: "<< onStrike[chnl].bend
+//                 <<" velocity: " << velocity<<" is sended"<< endl;
+//                */
+//            }
+//        }
+//        else
+//        {
+//            int volume = min(b[chnl].size,127);
+//            cout<<"volume"<<volume<<endl;
+//            //note off event
+//            if(volume == 0)
+//            {
+//
+//                midi_io.noteOff(chnl,onStrike[chnl].tone,volume);
+//                isNoteOn[chnl] = false;
+//            }
+//            //note playing event
+//            else
+//            {
+//                int bend = note_tbl[b[chnl].y][b[chnl].x].bend;
+//                //clamp bend value between 0~127
+//                bend = max(min(127,64+(bend-onStrike[chnl].bend)),0);
+//                midi_io.pitchBend(chnl,0,bend);
+//                midi_io.setExpression(chnl,volume);
+//            }
+//
+//        }
+//    }
 }
 
 #undef LZZ_INLINE
