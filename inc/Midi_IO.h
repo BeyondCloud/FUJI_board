@@ -45,6 +45,7 @@ LZZ_INLINE void Midi_IO::noteOn (int channel, int tone, int velocity)
 LZZ_INLINE void Midi_IO::noteOff (int channel, int tone, int volume)
 {
     message.clear();
+    std::cout << "Channel "<< channel <<" noteOff\n";
     message.push_back(128+channel);
     message.push_back(tone);
     message.push_back(volume);//note volume , note channel
@@ -53,6 +54,7 @@ LZZ_INLINE void Midi_IO::noteOff (int channel, int tone, int volume)
 LZZ_INLINE void Midi_IO::pitchBend (int channel, int LSB, int MSB)
 {
     message.clear();
+  //  std::cout << "Channel "<< channel <<" bend "<<MSB<<"\n";
     message.push_back(224 + channel);
     message.push_back(LSB);
     message.push_back(MSB);//note volume , note channel
@@ -61,7 +63,7 @@ LZZ_INLINE void Midi_IO::pitchBend (int channel, int LSB, int MSB)
 LZZ_INLINE void Midi_IO::setExpression (int chnl, int volume)
 {
     message.clear();
-    std::cout << "Channel "<< chnl <<" expression set to "<< volume <<"\n";
+  //  std::cout << "Channel "<< chnl <<" expression set to "<< volume <<"\n";
     message.push_back(176+chnl);
     message.push_back(11);
     message.push_back(volume);

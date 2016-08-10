@@ -18,20 +18,21 @@ class FeyeMgr
         int r;
     };
 public:
-    FeyeMgr (int,int);
+    FeyeMgr (int src_h,int src_w);
     void fillCircle (Mat &img, Point center, int r);
-    void undistortNclip (Mat & src);
+    void defishNcrop (Mat & gray_scale_image);
+    Mat defish_Img;
 private:
     void feye_tbl_create ();
     uchar * src_ptr;
     uchar * dst_ptr;
-    Mat frame,map_x,map_y;
+    Mat map_x,map_y;
     feye_t feye;
 };
-LZZ_INLINE void FeyeMgr::undistortNclip (Mat & src)
+LZZ_INLINE void FeyeMgr::defishNcrop (Mat & src)
 {
-    dst_ptr = src.ptr<uchar>(0);
-    for (int  j =CLIP_ORIGIN_Y; j <CLIP_ORIGIN_X + CLIP_HEIGHT; j++)
+    dst_ptr = defish_Img.ptr<uchar>(0);
+    for (int  j =CLIP_ORIGIN_Y; j <CLIP_ORIGIN_Y + CLIP_HEIGHT; j++)
     {
         for (int  i = CLIP_ORIGIN_X; i <CLIP_ORIGIN_X + CLIP_WIDTH; i++)
         {

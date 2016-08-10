@@ -2,9 +2,9 @@
 //
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include "../config.h"
-#include "../myStruct.h"
-#include "../Midi_IO.h"
+#include "config.h"
+#include "myStruct.h"
+#include "Midi_IO.h"
 
 #include <iostream>
 #include <math.h>
@@ -22,6 +22,7 @@ class SynthMgr
       void record_valid_rows (Mat & Img, T (& valid_y) [N]);
       void blob2midi(const blob_t (&blob_tbl)[MAX_TOUCH]);
       Mat Img;
+      int valid_row_cnt;
       note_t **note_tbl;
     private:
       note_t onStrike[MAX_TOUCH];
@@ -36,6 +37,7 @@ class SynthMgr
 template <typename T, size_t N>
 void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
 {
+    valid_row_cnt = 0;
     int key_cnt = 0;
     int pixel_cnt = 0;
     bool bw_switch = 0; //  black/white  true/false
@@ -68,6 +70,7 @@ void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
         }
         if(key_cnt == KEY)
         {
+            valid_row_cnt++;
             valid_y[y] = true;
             exist_valid_row = true;
         }
@@ -90,6 +93,7 @@ LZZ_INLINE void SynthMgr::blob2midi(const blob_t (&b)[MAX_TOUCH])
                 onStrike[chnl].tone = note_tbl[b[chnl].y][b[chnl].x].tone;
                 onStrike[chnl].bend = note_tbl[b[chnl].y][b[chnl].x].bend;
                 midi_io.setExpression(chnl,velocity);
+                midi_io.pitchBend(chnl,0,64);
                 midi_io.noteOn(chnl,onStrike[chnl].tone,velocity);
                 /*
                 cout << "channel: " << chnl << " tone: "
@@ -101,10 +105,11 @@ LZZ_INLINE void SynthMgr::blob2midi(const blob_t (&b)[MAX_TOUCH])
         else
         {
             int volume = min(b[chnl].size,127);
+            cout<<"volume"<<volume<<endl;
             //note off event
             if(volume == 0)
             {
-                midi_io.pitchBend(chnl,0,64);
+
                 midi_io.noteOff(chnl,onStrike[chnl].tone,volume);
                 isNoteOn[chnl] = false;
             }

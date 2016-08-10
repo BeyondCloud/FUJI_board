@@ -3,15 +3,17 @@
 #include <iostream>
 
 #include "SynthMgr.h"
-#include "../config.h"
+#include "config.h"
 
 #define LZZ_INLINE inline
 using namespace std;
 using namespace cv;
 SynthMgr::SynthMgr ()
 {
+
     for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
         isNoteOn[chnl] = false;
+
     Img = imread("line.jpg");
     if(!Img.data)
     {
@@ -88,13 +90,6 @@ SynthMgr::SynthMgr ()
 
         }
     }
-//    for(int r = 0;r<Img.rows;r++)
-//    {
-//        if(valid_y[r])
-//            cout<<r<<" "<<note_tbl[r][0].tone<<"\n";
-//        else
-//            cout<<r<<" invalid\n";
-//    }
 
 }
 bool (SynthMgr::valid_y) [CLIP_HEIGHT] = {false};

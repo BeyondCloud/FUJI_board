@@ -6,25 +6,21 @@
 #define LZZ_INLINE inline
 using namespace std;
 using namespace cv;
-FeyeMgr::FeyeMgr (int src_w,int src_h)
+FeyeMgr::FeyeMgr (int src_h,int src_w)
 {
-
-           // frame = imread("fish3.jpg");
-    frame =Mat(src_h,src_w,CV_8UC1);
-    if(CLIP_WIDTH+CLIP_ORIGIN_X > frame.cols)
+    defish_Img = Mat(CLIP_HEIGHT,CLIP_WIDTH,CV_8UC1);
+    if(CLIP_WIDTH+CLIP_ORIGIN_X > src_w)
     {
-        cout << "invalid clip window: except CLIP_WIDTH+CLIP_ORIGIN_X < frame.cols:"<<frame.cols<<"\n";
-        return;
+        cout << "invalid clip window: except CLIP_WIDTH+CLIP_ORIGIN_X < src_w:"<<src_w<<"\n";
+        return ;
     }
-    else if(CLIP_HEIGHT+CLIP_ORIGIN_Y > frame.rows)
+    else if(CLIP_HEIGHT+CLIP_ORIGIN_Y > src_h)
     {
-        cout << "invalid clip window: except CLIP_HEIGHT+CLIP_ORIGIN_Y < frame.rows:"<<frame.rows<<"\n";
-        return;
+        cout << "invalid clip window: except CLIP_HEIGHT+CLIP_ORIGIN_Y < src_h:"<<src_h<<"\n";
+        return ;
     }
-    map_x =Mat(frame.rows,frame.cols,CV_32SC1);
-    map_y =Mat(frame.rows,frame.cols,CV_32SC1);
-    //now Img is a square image
-    //square table will be created and mapped back to src image coordinate
+    map_x =Mat(src_h,src_w,CV_32SC1);
+    map_y =Mat(src_h,src_w,CV_32SC1);
     feye_tbl_create();
 
 }
@@ -41,21 +37,24 @@ void FeyeMgr::fillCircle (Mat &img, Point center, int r)
 }
 void FeyeMgr::feye_tbl_create ()
 {
-    feye.center.x = frame.cols/2;  //640
-    feye.center.y = frame.rows/2;  //360
-    feye.r = 600;
+    //set fish eye configure over here
+    feye.center.x = FeyeCenterX;
+    feye.center.y = FeyeCenterY;
+    feye.r = FeyeRadius;
+    //===================================
 //  fillCircle(frame,feye.center,feye.r);
 
     Point feye_top_left = Point(feye.center.x-feye.r,feye.center.y-feye.r);
     cout<<"feye top left orig(x,y)=" << feye_top_left.x<<" "<<feye_top_left.y<<endl;
-    bool isROI = true;
-    for (int  y = 0; y <frame.rows ; y++)
+    bool isROI;
+    for (int  y = 0; y <map_y.rows ; y++)
     {
         // normalize y coordinate to -1 ... 1
         double ny =  (y-feye.center.y)/(double)feye.r;
         double ny2 = ny*ny;
-        for (int  x = 0 ; x <frame.cols ; x++)
+        for (int  x = 0 ; x <map_x.cols ; x++)
         {
+            isROI = false;
             // x coordinate to -1 ... 1
             double nx =  (x -feye.center.x)/(double)feye.r;
             double nx2 = nx*nx;
@@ -75,26 +74,21 @@ void FeyeMgr::feye_tbl_create ()
                     double nyn = nr*sin(theta);
                     int x2 = (int)(((nxn+1.0)*(double)feye.r)+feye_top_left.x);
                     int y2 = (int)(((nyn+1.0)*(double)feye.r)+feye_top_left.y);
-                    if(0 <= y2 && y2 < frame.rows && 0 <= x2 && x2 < frame.cols)
+                    if(0 <= y2 && y2 < map_y.rows && 0 <= x2 && x2 < map_x.cols)
                     {
                         map_x.at<int>(y,x) = x2;
                         map_y.at<int>(y,x) = y2;
+                        isROI = true;
                     }
-                    else
-                        isROI = false;
                 }
-                else
-                        isROI = false;
             }
-            else
-                isROI = false;
             if(!isROI)
             {
                 map_x.at<int>(y,x) = x;
                 map_y.at<int>(y,x) = y;
-                isROI = true;
             }
          }
     }
+
 }
 #undef LZZ_INLINE

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Seaboard_proj" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/Seaboard_proj" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/Seaboard_proj" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../inc/BlobDetector.h" />
+		<Unit filename="../inc/FeyeMgr.h" />
+		<Unit filename="../inc/Midi_IO.h" />
+		<Unit filename="../inc/RtMidi.h" />
+		<Unit filename="../inc/SynthMgr.h" />
+		<Unit filename="../inc/config.h" />
+		<Unit filename="../inc/myStruct.h" />
+		<Unit filename="../src/BlobDetector.cpp" />
+		<Unit filename="../src/FeyeMgr.cpp" />
+		<Unit filename="../src/Midi_IO.cpp" />
+		<Unit filename="../src/RtMidi.cpp" />
+		<Unit filename="../src/SynthMgr.cpp" />
+		<Unit filename="../src/main.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
