@@ -97,7 +97,7 @@ int main(int argc, const char** argv)
     {
     }
 */
-
+/*
     Mat prev_frame = imread("prev.jpg");
     Mat cur_frame = imread("current.jpg");
     Mat bg = imread("bg.jpg");
@@ -112,12 +112,13 @@ int main(int argc, const char** argv)
     imshow("prev",prev_frame);
     imshow("cur",cur_frame);
     waitKey();
+    */
 
-/*
+
     Mat frame;
     cap_init();
     FeyeMgr feyeMgr(cap.get(CV_CAP_PROP_FRAME_HEIGHT),cap.get(CV_CAP_PROP_FRAME_WIDTH));
- //   SynthMgr synthMgr;
+    SynthMgr synthMgr;
     BlobDetector blobdtr;
     bool is_running = true;
     Mat bg = imread("bg.jpg");
@@ -130,7 +131,7 @@ int main(int argc, const char** argv)
         cvtColor(frame,frame,CV_BGR2GRAY);
         feyeMgr.defishNcrop(frame);
         blobdtr.detect(feyeMgr.defish_Img);
-    //    synthMgr.blob2midi(blobdtr.blob);
+        synthMgr.blob2midi(blobdtr.blobs);
         imshow("orig",feyeMgr.defish_Img);
         if (_kbhit() )
         {
@@ -145,6 +146,6 @@ int main(int argc, const char** argv)
             }
         }
     }
-*/
+
     return 0;
 }
