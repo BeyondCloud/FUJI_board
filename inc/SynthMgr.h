@@ -30,8 +30,8 @@ class SynthMgr
 
 
       int  getID();
-      void noteOn( blob_t &blob_cur);
-      void noteOff(const int ID);
+      void noteOn( blob_t &cur_blob);
+      void noteOff(blob_t &prev_blob);
       void notePlay(const int ID,blob_t &cur_blob);
 
       Mat Img;
@@ -114,7 +114,7 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
             {
                 if(delX < 0)
                 {
-                    noteOff(prev_blobs.back().ID);
+                    noteOff(prev_blobs.back());
                     prev_blobs.pop_back();
                     break;
                 }
@@ -129,7 +129,7 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
         if(cur_blob_rev_it == blobs.rend())
         {
             for(unsigned int i = 0;i<prev_blobs.size();i++)
-                noteOff(prev_blobs[i].ID);
+                noteOff(prev_blobs[i]);
             break;
         }
     }
@@ -149,29 +149,30 @@ LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
         int y = cur_blob.y;
         noteDown[chnl].tone = note_tbl[y][x].tone;
         noteDown[chnl].bend = note_tbl[y][x].bend;
-//        int velocity = min(cur_blob.size,127);
-//        midi_io.setExpression(chnl,velocity);
-//        midi_io.pitchBend(chnl,0,64);
-//        midi_io.noteOn(chnl,noteDown[chnl].tone,velocity);
+        int velocity = min(cur_blob.size,127);
+        midi_io.setExpression(chnl,velocity);
+        midi_io.pitchBend(chnl,0,64);
+        midi_io.noteOn(chnl,noteDown[chnl].tone,velocity);
         cout<<chnl <<" noteOn"<<endl;
     }
 }
-LZZ_INLINE void SynthMgr::noteOff(const int chnl)
+LZZ_INLINE void SynthMgr::noteOff(blob_t &prev_blob)
 {
+    int chnl = prev_blob.ID;
+    midi_io.noteOff(chnl,noteDown[chnl].tone,prev_blob.size);
     noteDown[chnl].tone  = -1;
-//    midi_io.noteOff(chnl,noteDown[chnl].tone,blob_prev.size);
     cout<<chnl <<" noteOff"<<endl;
 }
 LZZ_INLINE void SynthMgr::notePlay(const int chnl,blob_t &cur_blob)
 {
     cur_blob.ID = chnl;
-//    int bend = note_tbl[cur_blob[chnl].y][cur_blob[chnl].x].bend;
-//    int volume = min(cur_blob[chnl].size,127);
-//    //clamp bend value between 0~127
-//    bend = max(min(127,64+(bend-noteDown[chnl].bend)),0);
-//    midi_io.pitchBend(chnl,0,bend);
-//    midi_io.setExpression(chnl,volume);
-//    cout<<cur_blob.ID <<" Play"<<endl;
+    int bend = note_tbl[(cur_blob.y)][(cur_blob.x)].bend;
+    int volume = min(cur_blob.size,127);
+    //clamp bend value between 0~127
+    bend = max(min(127,64+(bend-noteDown[chnl].bend)),0);
+    midi_io.pitchBend(chnl,0,bend);
+    midi_io.setExpression(chnl,volume);
+
 }
 LZZ_INLINE int SynthMgr::getID()
 {
