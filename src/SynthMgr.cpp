@@ -13,9 +13,6 @@ SynthMgr::SynthMgr ()
 
     ID = 0;
 
-    for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
-        isNoteOn[chnl] = false;
-
     Img = imread("line.jpg");
     if(!Img.data)
     {

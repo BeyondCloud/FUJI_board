@@ -16,6 +16,8 @@ class Midi_IO
     void setPitchBendRange (int channel, int semitones, int cents);
     void setMainVolume (int chnl,int volume);
     void setExpression (int chnl, int volume);
+    void allNoteOff (int chnl);
+    void allSoundOff (int chnl);
     void selectInstrument (int channel, int instrument);
     void cleanUp();
     enum  Tone {C0,C0s,D0,D0s,E0,F0,F0s,G0,G0s,A0,A0s,B0,
@@ -37,6 +39,7 @@ class Midi_IO
 LZZ_INLINE void Midi_IO::noteOn (int channel, int tone, int velocity)
 {
     message.clear();
+    std::cout << "Tone "<< tone <<" noteOn\n";
     message.push_back(144+channel);
     message.push_back(tone);
     message.push_back(velocity);//velocity of key strike,
@@ -45,7 +48,7 @@ LZZ_INLINE void Midi_IO::noteOn (int channel, int tone, int velocity)
 LZZ_INLINE void Midi_IO::noteOff (int channel, int tone, int volume)
 {
     message.clear();
-    std::cout << "Channel "<< channel <<" noteOff\n";
+    std::cout << "Tone "<< tone <<" noteOff\n";
     message.push_back(128+channel);
     message.push_back(tone);
     message.push_back(volume);//note volume , note channel
@@ -67,6 +70,24 @@ LZZ_INLINE void Midi_IO::setExpression (int chnl, int volume)
     message.push_back(176+chnl);
     message.push_back(11);
     message.push_back(volume);
+    midiout->sendMessage( &message );
+}
+LZZ_INLINE void Midi_IO::allNoteOff (int chnl)
+{
+    message.clear();
+  //  std::cout << "Channel "<< chnl <<" expression set to "<< volume <<"\n";
+    message.push_back(176+chnl);
+    message.push_back(123);
+    message.push_back(0);
+    midiout->sendMessage( &message );
+}
+LZZ_INLINE void Midi_IO::allSoundOff (int chnl)
+{
+    message.clear();
+  //  std::cout << "Channel "<< chnl <<" expression set to "<< volume <<"\n";
+    message.push_back(176+chnl);
+    message.push_back(120);
+    message.push_back(0);
     midiout->sendMessage( &message );
 }
 #undef LZZ_INLINE

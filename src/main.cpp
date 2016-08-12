@@ -143,6 +143,10 @@ int main(int argc, const char** argv)
                 case 's':
                     blobdtr.resetBackground(feyeMgr.defish_Img);
                     break;
+                case 'o':
+                    for(int i = 0; i < CHANNEL_USED; i++)
+                    synthMgr.midi_io.allNoteOff(i);
+                    break;
             }
         }
     }

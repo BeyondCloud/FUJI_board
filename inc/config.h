@@ -1,6 +1,8 @@
 
 //=====key board config
-#define MAX_TOUCH 1
+#define MAX_TOUCH 2
+#define CHANNEL_USED 2
+
 #define KEY 25
 #define LOWEST_TONE 60
 #define VOLUME_SCALE 1
@@ -18,7 +20,7 @@
 #define FeyeCenterY 360
 #define FeyeRadius 600
 //=====blob detect config
-#define GROUP_RANGE_X 50
+#define BLOB_SLIDE_RANGE 50
 
 
 

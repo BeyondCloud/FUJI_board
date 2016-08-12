@@ -52,4 +52,5 @@ void BlobDetector::debug_draw(Mat &src)
     cout<<"x"<<blobs[0].x<<"y"<<blobs[0].y<<endl;
     imshow("result",src);
 }
+
 #undef LZZ_INLINE

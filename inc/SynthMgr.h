@@ -15,24 +15,35 @@ using namespace cv;
 using namespace std;
 class SynthMgr
 {
+    struct blobGreater
+    {
+        bool operator()( const blob_t& l, const blob_t& r ) const {
+            return l.x < r.x;
+        }
+    };
     public:
       SynthMgr ();
       template <typename T, size_t N>
       void record_valid_rows (Mat & Img, T (& valid_y) [N]);
       void blob2midi(vector<blob_t> &blobs);
+      Midi_IO midi_io;
+
 
       int  getID();
+      void noteOn( blob_t &blob_cur);
+      void noteOff(const int ID);
+      void notePlay(const int ID,blob_t &cur_blob);
+
       Mat Img;
       int valid_row_cnt;
       note_t **note_tbl;
     private:
       int ID;
-      note_t onStrike[MAX_TOUCH];
-      Midi_IO midi_io;
+      note_t noteDown[MAX_TOUCH];
       static bool (valid_y) [CLIP_HEIGHT];
-      bool isNoteOn[MAX_TOUCH];
       bool exist_valid_row;
-      vector <blob_t> blobs_prev;
+      vector <blob_t> prev_blobs;
+      vector<blob_t>::reverse_iterator cur_blob_rev_it;
 };
 //if the rows of line image contain valid key number
 //mark it as valid row
@@ -81,104 +92,91 @@ void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
     }
 
 }
+//WARNING
+//All blob input should be sort in ascending x order
 LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
 {
-    bool isPlaying;
-    //playing state
-    cout<<"size"<<blobs.size()<<endl;
-    for(unsigned int i = 0;i<blobs.size();i++)
+    sort(blobs.begin(),blobs.end(),blobGreater());
+    cur_blob_rev_it = blobs.rbegin();
+    while(!prev_blobs.empty())
     {
-        isPlaying = false;
-        for(unsigned int j = 0;j < blobs_prev.size(); j++)
+        while(cur_blob_rev_it != blobs.rend())
         {
-        //Note playing
-            if( abs(blobs_prev[j].x- blobs[i].x ) < GROUP_RANGE_X)
+            int delX = cur_blob_rev_it->x - prev_blobs.back().x;
+            if(abs(delX) < BLOB_SLIDE_RANGE)
             {
-                isPlaying = true;
-                int chnl = blobs_prev[j].ID;
-                int x = blobs_prev[j].x;
-                int y = blobs_prev[j].y;
-                int bend = note_tbl[y][x].bend;
-                int volume = min(blobs_prev[j].size,127);
-                //clamp bend value between 0~127
-                bend = max(min(127,64+(bend-onStrike[chnl].bend)),0);
-                midi_io.pitchBend(chnl,0,bend);
-                midi_io.setExpression(chnl,volume);
-                blobs_prev.erase(blobs_prev.begin()+j);
+                notePlay(prev_blobs.back().ID,*cur_blob_rev_it);
+                prev_blobs.pop_back();
+                ++cur_blob_rev_it;
                 break;
             }
+            else
+            {
+                if(delX < 0)
+                {
+                    noteOff(prev_blobs.back().ID);
+                    prev_blobs.pop_back();
+                    break;
+                }
+                else
+                {
+                    noteOn(*cur_blob_rev_it);
+                    ++cur_blob_rev_it;
+                }
+            }
         }
-        //Note ON
-        if(!isPlaying)
+        //when current blobs done,note off the rest of previous blobs to break while loop
+        if(cur_blob_rev_it == blobs.rend())
         {
-            blobs.back().ID = getID();
-            int chnl = blobs.back().ID;
-            int x = blobs.back().x;
-            int y = blobs.back().y;
-            int velocity = min(blobs.back().size,127);
-            onStrike[chnl].tone = note_tbl[y][x].tone;
-            onStrike[chnl].bend = note_tbl[y][x].bend;
-            midi_io.setExpression(chnl,velocity);
-            midi_io.pitchBend(chnl,0,64);
-            midi_io.noteOn(chnl,onStrike[chnl].tone,velocity);
+            for(unsigned int i = 0;i<prev_blobs.size();i++)
+                noteOff(prev_blobs[i].ID);
+            break;
         }
     }
-    //note off
-    for(unsigned int i = 0;i<blobs_prev.size();i++)
+    for (vector<blob_t>::reverse_iterator it = cur_blob_rev_it; it != blobs.rend();++it )
     {
-        int chnl = blobs_prev.back().ID;
-        midi_io.noteOff(chnl,onStrike[chnl].tone,blobs_prev.back().size);
+        noteOn(*it);
     }
-    blobs_prev = blobs;
-//    for(int chnl = 0;chnl < MAX_TOUCH;chnl++)
-//    {
-//        if(isNoteOn[chnl] == false)
-//        {
-//            int velocity = min(b[chnl].size,127);
-//            //note on event
-//            if(velocity != 0)
-//            {
-//                isNoteOn[chnl] = true;
-//                onStrike[chnl].tone = note_tbl[b[chnl].y][b[chnl].x].tone;
-//                onStrike[chnl].bend = note_tbl[b[chnl].y][b[chnl].x].bend;
-//                midi_io.setExpression(chnl,velocity);
-//                midi_io.pitchBend(chnl,0,64);
-//                midi_io.noteOn(chnl,onStrike[chnl].tone,velocity);
-//                /*
-//                cout << "channel: " << chnl << " tone: "
-//                 << onStrike[chnl].tone << " bend: "<< onStrike[chnl].bend
-//                 <<" velocity: " << velocity<<" is sended"<< endl;
-//                */
-//            }
-//        }
-//        else
-//        {
-//            int volume = min(b[chnl].size,127);
-//            cout<<"volume"<<volume<<endl;
-//            //note off event
-//            if(volume == 0)
-//            {
-//
-//                midi_io.noteOff(chnl,onStrike[chnl].tone,volume);
-//                isNoteOn[chnl] = false;
-//            }
-//            //note playing event
-//            else
-//            {
-//                int bend = note_tbl[b[chnl].y][b[chnl].x].bend;
-//                //clamp bend value between 0~127
-//                bend = max(min(127,64+(bend-onStrike[chnl].bend)),0);
-//                midi_io.pitchBend(chnl,0,bend);
-//                midi_io.setExpression(chnl,volume);
-//            }
-//
-//        }
-//    }
+    prev_blobs=blobs;
+}
+LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
+{
+    cur_blob.ID = getID();
+    int chnl = cur_blob.ID;
+    if(noteDown[chnl].tone == -1)
+    {
+        int x = cur_blob.x;
+        int y = cur_blob.y;
+        noteDown[chnl].tone = note_tbl[y][x].tone;
+        noteDown[chnl].bend = note_tbl[y][x].bend;
+//        int velocity = min(cur_blob.size,127);
+//        midi_io.setExpression(chnl,velocity);
+//        midi_io.pitchBend(chnl,0,64);
+//        midi_io.noteOn(chnl,noteDown[chnl].tone,velocity);
+        cout<<chnl <<" noteOn"<<endl;
+    }
+}
+LZZ_INLINE void SynthMgr::noteOff(const int chnl)
+{
+    noteDown[chnl].tone  = -1;
+//    midi_io.noteOff(chnl,noteDown[chnl].tone,blob_prev.size);
+    cout<<chnl <<" noteOff"<<endl;
+}
+LZZ_INLINE void SynthMgr::notePlay(const int chnl,blob_t &cur_blob)
+{
+    cur_blob.ID = chnl;
+//    int bend = note_tbl[cur_blob[chnl].y][cur_blob[chnl].x].bend;
+//    int volume = min(cur_blob[chnl].size,127);
+//    //clamp bend value between 0~127
+//    bend = max(min(127,64+(bend-noteDown[chnl].bend)),0);
+//    midi_io.pitchBend(chnl,0,bend);
+//    midi_io.setExpression(chnl,volume);
+//    cout<<cur_blob.ID <<" Play"<<endl;
 }
 LZZ_INLINE int SynthMgr::getID()
 {
-    ID = (ID+1)%MAX_TOUCH;
-    cout<<"ID"<<ID<<endl;
+    ID = (ID+1)%CHANNEL_USED;
+    cout<<"ID "<<ID<<" create"<<endl;
     return ID;
 }
 #undef LZZ_INLINE

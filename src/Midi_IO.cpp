@@ -8,7 +8,7 @@
 Midi_IO::Midi_IO ()
 {
 	midiout = new RtMidiOut();
-    midiout->openPort( 1);
+    midiout->openPort(0);
     for(int chnl =0;chnl<MAX_TOUCH;chnl++)
     {
         selectInstrument(chnl,16);
