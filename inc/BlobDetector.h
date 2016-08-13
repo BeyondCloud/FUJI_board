@@ -28,6 +28,7 @@ private:
     vector <SimpleBlobDetector::Params> pBLOB;
     vector <SimpleBlobDetector::Params>::iterator itBLOB;
     vector <KeyPoint> keyImg;
+    vector <KeyPoint>::iterator k;
     Mat backGround;
     Ptr <Feature2D> b;
     Ptr <SimpleBlobDetector> sbd;
@@ -37,15 +38,13 @@ LZZ_INLINE void BlobDetector::detect (Mat & src)
 	src -= backGround;
 	sbd->detect(src, keyImg, Mat());
 	blobs.clear();
-	for (unsigned int i = 0; i < keyImg.size(); i++)
+	for (k = keyImg.begin(); k != keyImg.end(); k++)
     {
-        if(i<MAX_TOUCH)
-        {
-            blob.x = keyImg[i].pt.x;
-			blob.y = keyImg[i].pt.y;
-			blob.size = (int)keyImg[i].size;
+            blob.x = k->pt.x;
+			blob.y = k->pt.y;
+			blob.size = (int)k->size;
 			blobs.push_back(blob);
-        }
+
 	}
 
 }
