@@ -1,7 +1,6 @@
 
 //=====key board config
 #define MAX_TOUCH 2
-#define CHANNEL_USED 2
 
 #define KEY 25
 #define LOWEST_TONE 60

@@ -59,7 +59,7 @@ int main(int argc, const char** argv)
                     blobdtr.resetBackground(feyeMgr.defish_Img);
                     break;
                 case 'o':
-                    for(int i = 0; i < CHANNEL_USED; i++)
+                    for(int i = 0; i < MAX_TOUCH; i++)
                     synthMgr.midi_io.allNoteOff(i);
                     break;
             }
