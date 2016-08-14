@@ -43,8 +43,8 @@ class SynthMgr
       static bool (valid_y) [CLIP_HEIGHT];
       bool exist_valid_row;
       vector <blob_t> prev_blobs;
-      vector<blob_t>::reverse_iterator blobs_rev_it;
-      vector<blob_t>::reverse_iterator prev_rev_it;
+      vector<blob_t>::iterator cur_it;
+      vector<blob_t>::iterator prev_it;
 
 };
 //if the rows of line image contain valid key number
@@ -99,50 +99,50 @@ void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
 LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
 {
     sort(blobs.begin(),blobs.end(),blobGreater());
-    blobs_rev_it = blobs.rbegin();
-    prev_rev_it = prev_blobs.rbegin();
-    while(prev_rev_it != prev_blobs.rend())
+    cur_it = blobs.begin();
+    prev_it = prev_blobs.begin();
+    while(prev_it != prev_blobs.end())
     {
-        while(blobs_rev_it != blobs.rend())
+        while(cur_it != blobs.end())
         {
-            int delX = blobs_rev_it->x - prev_rev_it->x;
+            int delX = cur_it->x - prev_it->x;
             if(abs(delX) < BLOB_SLIDE_RANGE)
             {
-                notePlay(prev_rev_it->ID,*blobs_rev_it);
-                ++prev_rev_it;
-                ++blobs_rev_it;
+                notePlay(prev_it->ID,*cur_it);
+                ++prev_it;
+                ++cur_it;
                 break;
             }
             else
             {
                 if(delX < 0)
                 {
-                    noteOff(*prev_rev_it);
-                    ++prev_rev_it;
+                    noteOff(*prev_it);
+                    ++prev_it;
                     break;
                 }
                 else
                 {
-                    noteOn(*blobs_rev_it);
-                    ++blobs_rev_it;
+                    noteOn(*cur_it);
+                    ++cur_it;
                 }
             }
         }
         //when all current blobs done,note off the rest of previous blobs to break while loop
-        if(blobs_rev_it == blobs.rend())
+        if(cur_it == blobs.end())
         {
-            while(prev_rev_it != prev_blobs.rend())
+            while(prev_it != prev_blobs.end())
             {
-                noteOff(*prev_rev_it);
-                ++prev_rev_it;
+                noteOff(*prev_it);
+                ++prev_it;
             }
             break;
         }
     }
-    while(blobs_rev_it != blobs.rend())
+    while(cur_it != blobs.end())
     {
-        noteOn(*blobs_rev_it);
-        ++blobs_rev_it;
+        noteOn(*cur_it);
+        ++cur_it;
     }
     prev_blobs=blobs;
 }
