@@ -14,8 +14,10 @@ SynthMgr::SynthMgr ()
 
     for(int id=0;id<MAX_TOUCH;id++)
     {
-        ID_pool.push(id);
+        ID_queue.push(id);
+        prev_blobs[id].ID = -1;
     }
+
     Img = imread("line.jpg");
     if(!Img.data)
     {

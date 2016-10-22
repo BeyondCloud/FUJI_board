@@ -38,11 +38,11 @@ class SynthMgr
       int valid_row_cnt;
       note_t **note_tbl;
     private:
-      queue<int> ID_pool;
+      queue<int> ID_queue;
       note_t noteDown[MAX_TOUCH];
       static bool (valid_y) [CLIP_HEIGHT];
       bool exist_valid_row;
-      vector <blob_t> prev_blobs;
+      blob_t prev_blobs[MAX_TOUCH];
       vector<blob_t>::iterator cur_it;
       vector<blob_t>::iterator prev_it;
 
@@ -100,59 +100,48 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
 {
     sort(blobs.begin(),blobs.end(),blobGreater());
     cur_it = blobs.begin();
-    prev_it = prev_blobs.begin();
-    while(prev_it != prev_blobs.end())
+    for(int i=0;i<MAX_TOUCH;i++)
     {
-        while(cur_it != blobs.end())
+        if(prev_blobs[i].ID != -1)
         {
-            int delX = cur_it->x - prev_it->x;
-            if(abs(delX) < BLOB_SLIDE_RANGE)
+           // cout<<"ID: "<<prev_blobs.begin()->ID<<endl;
+            while(cur_it != blobs.end())
             {
-                notePlay(prev_it->ID,*cur_it);
-                ++prev_it;
-                ++cur_it;
-                break;
-            }
-            else
-            {
-                if(delX < 0)
+                int delX = cur_it->x - prev_blobs[i].x;
+                if(abs(delX) < BLOB_SLIDE_RANGE)
                 {
-                    noteOff(*prev_it);
-                    ++prev_it;
+                    notePlay(i,*cur_it);
                     break;
                 }
-                else
+                else if(delX>0)
                 {
-                    noteOn(*cur_it);
-                    ++cur_it;
+                    noteOff(prev_blobs[i]);
+                    break;
                 }
+                ++cur_it;
             }
-        }
-        //when all current blobs done,note off the rest of previous blobs to break while loop
-        if(cur_it == blobs.end())
-        {
-            while(prev_it != prev_blobs.end())
+            if(cur_it == blobs.end())
             {
-                noteOff(*prev_it);
-                ++prev_it;
+                 noteOff(prev_blobs[i]);
             }
-            break;
         }
     }
-    while(cur_it != blobs.end())
+    while(cur_it != blobs.end() && !ID_queue.empty())
     {
         noteOn(*cur_it);
         ++cur_it;
     }
-    prev_blobs=blobs;
 }
 LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
 {
-    if(ID_pool.empty())
+    if(ID_queue.empty())
+    {
+        cout<<"pool empty"<<endl;
         return;
+    }
 
-    cur_blob.ID = ID_pool.front();
-    ID_pool.pop();
+    cur_blob.ID = ID_queue.front();
+    ID_queue.pop();
     int chnl = cur_blob.ID;
     int x = cur_blob.x;
     int y = cur_blob.y;
@@ -162,15 +151,16 @@ LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
     midi_io.setExpression(chnl,velocity);
     midi_io.pitchBend(chnl,0,64);
     midi_io.noteOn(chnl,noteDown[chnl].tone,velocity);
+
+    prev_blobs[cur_blob.ID] = cur_blob;
     cout<<chnl <<" noteOn"<<endl;
 
 }
 LZZ_INLINE void SynthMgr::noteOff(blob_t &prev_blob)
 {
     int chnl = prev_blob.ID;
-    if(prev_blob.ID == -1)
-        return;
-    ID_pool.push(chnl);
+    prev_blobs[chnl].ID = -1;
+    ID_queue.push(chnl);
     midi_io.noteOff(chnl,noteDown[chnl].tone,prev_blob.size);
     cout<<chnl <<" noteOff"<<endl;
 }
