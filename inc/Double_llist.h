@@ -15,7 +15,9 @@ class Double_llist
         Double_llist():head_ptr(0){ list_size = 0;};
         void push_back(T const &obj);
         bool go_next();
+        bool go_prev();
         bool go_tail();
+        bool go_head();
         void remove(node_t* to_remove);
         void remove_N_next();
         void remove_N_prev();
@@ -132,10 +134,24 @@ bool Double_llist<T>::go_next(){
         return true;
 }
 template <class T>
+bool Double_llist<T>::go_prev(){
+    if(current->prev == 0)
+        return false;
+    current = current->prev;
+        return true;
+}
+template <class T>
 bool Double_llist<T>::go_tail(){
     if ( tail_ptr == 0 )
         return false;
     current = tail_ptr;
+    return true;
+}
+template <class T>
+bool Double_llist<T>::go_head(){
+    if (head_ptr == 0 )
+        return false;
+    current = head_ptr;
     return true;
 }
 #endif // _DOUBLE_LLIST_H_

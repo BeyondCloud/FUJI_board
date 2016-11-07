@@ -102,9 +102,10 @@ void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
 //All blob input should be sort in ascending x order
 LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
 {
+    //if list is not empty,go to list tail
+    //determine note playing,note off,ignored note
     if(onTouch_list.go_tail())
     {
-        //determine note playing,note off,ignored note
         //ID = -1 means already note off
         for(int i = 0;i<onTouch_list.size();i++)
         {
@@ -112,24 +113,27 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
             {
                 if(!blob_it->isMatch)
                 {
+                    //compare blobs with each blob in touch list
                     if(abs(blob_it->x - onTouch_list.cur().x )<BLOB_SLIDE_RANGE &&
                        abs(blob_it->y - onTouch_list.cur().y )<BLOB_SLIDE_RANGE )
                     {
                         blob_it->ID = onTouch_list.cur().ID;
+                        blob_it->isMatch = true;
                         if(blob_it->ID != -1)
                         {
                             onTouch_list.set_cur(*blob_it);
                             notePlay(onTouch_list.cur());
                         }
-                        blob_it->isMatch = true;
                         break;
                     }
                 }
 
             }
-            //other note off
+            //if blob in list does not all blob on new frame
+            //note off this note
             if(blob_it==blobs.end())
             {
+                //note off only when this note is playing before
                 if(blob_it->ID != -1)
                     noteOff(onTouch_list.cur());
                 onTouch_list.remove_N_next();
@@ -138,63 +142,29 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
                 onTouch_list.go_next();
         }
     }
-
+    //only this region allow blobs to enter onTouch_list
     for(blob_it =blobs.begin();blob_it!=blobs.end();blob_it++)
     {
         if(!blob_it->isMatch)
             onTouch_list.push_back(*blob_it);
     }
-    onTouch_list.go_tail();
-    for(int i = 0;i< min(MAX_TOUCH,onTouch_list.size());i++)
+
+    if(onTouch_list.go_tail())
     {
-        if(!onTouch_list.cur().isMatch)
+        for(int i = 0;i< min(MAX_TOUCH,onTouch_list.size());i++)
         {
-            if(ID_queue.empty())
+            if(onTouch_list.cur().ID == -1)
             {
-                noteOff(onTouch_list.first_touch->obj);
-                onTouch_list.first_touch = onTouch_list.first_touch->prev;
+                if(ID_queue.empty())
+                {
+                    noteOff(onTouch_list.first_touch->obj);
+                    onTouch_list.first_touch = onTouch_list.first_touch->prev;
+                }
+                noteOn(onTouch_list.cur());
             }
-            noteOn(onTouch_list.cur());
+            onTouch_list.go_next();
         }
-        onTouch_list.go_next();
     }
-    onTouch_list.first_touch = onTouch_list.cur_ptr();
-
-
-
-//    sort(blobs.begin(),blobs.end(),blobGreater());
-//    cur_it = blobs.begin();
-//    for(int i=0;i<MAX_TOUCH;i++)
-//    {
-//        if(prev_blobs[i].ID != -1)
-//        {
-//           // cout<<"ID: "<<prev_blobs.begin()->ID<<endl;
-//            while(cur_it != blobs.end())
-//            {
-//                int delX = cur_it->x - prev_blobs[i].x;
-//                if(abs(delX) < BLOB_SLIDE_RANGE)
-//                {
-//                    notePlay(i,*cur_it);
-//                    break;
-//                }
-//                else if(delX>0)
-//                {
-//                    noteOff(prev_blobs[i]);
-//                    break;
-//                }
-//                ++cur_it;
-//            }
-//            if(cur_it == blobs.end())
-//            {
-//                 noteOff(prev_blobs[i]);
-//            }
-//        }
-//    }
-//    while(cur_it != blobs.end() && !ID_queue.empty())
-//    {
-//        noteOn(*cur_it);
-//        ++cur_it;
-//    }
 }
 LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
 {
@@ -203,6 +173,9 @@ LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
         cout<<"pool empty"<<endl;
         return;
     }
+    if(ID_queue.size() == MAX_TOUCH)
+        onTouch_list.first_touch = onTouch_list.head();
+
     cur_blob.ID = ID_queue.front();
     ID_queue.pop();
     int chnl = cur_blob.ID;
