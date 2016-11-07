@@ -20,7 +20,6 @@
 #define FeyeRadius 600
 //=====blob detect config
 #define BLOB_SLIDE_RANGE 50
-#define X_FAR_AWAY 16384
 
 
 

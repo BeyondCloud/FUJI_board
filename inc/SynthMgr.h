@@ -39,7 +39,7 @@ class SynthMgr
       int valid_row_cnt;
       note_t **note_tbl; //tone table
     private:
-      Double_llist<blob_t> playing_note;
+      Double_llist<blob_t> onTouch_list;
       queue<int> ID_queue;
       note_t noteDown[MAX_TOUCH];
       static bool (valid_y) [CLIP_HEIGHT];
@@ -102,35 +102,63 @@ void SynthMgr::record_valid_rows (Mat & Img, T (& valid_y) [N])
 //All blob input should be sort in ascending x order
 LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
 {
-    if(playing_note.go_tail())
+    if(onTouch_list.go_tail())
     {
-        //note playing
-        while(playing_note.cur().ID != -1) //-1 means already note off
+        //determine note playing,note off,ignored note
+        //ID = -1 means already note off
+        for(int i = 0;i<onTouch_list.size();i++)
         {
             for(blob_it =blobs.begin();blob_it!=blobs.end();blob_it++)
             {
-                if(abs(blob_it->x - playing_note.cur().x )<BLOB_SLIDE_RANGE &&
-                   abs(blob_it->y-playing_note.cur().y )<BLOB_SLIDE_RANGE )
+                if(!blob_it->isMatch)
                 {
-                    blob_it->ID = playing_note.cur().ID;
-                    playing_note.set_cur(*blob_it);
-                    notePlay(playing_note.cur());
-                    blob_it->x = X_FAR_AWAY;
+                    if(abs(blob_it->x - onTouch_list.cur().x )<BLOB_SLIDE_RANGE &&
+                       abs(blob_it->y - onTouch_list.cur().y )<BLOB_SLIDE_RANGE )
+                    {
+                        blob_it->ID = onTouch_list.cur().ID;
+                        if(blob_it->ID != -1)
+                        {
+                            onTouch_list.set_cur(*blob_it);
+                            notePlay(onTouch_list.cur());
+                        }
+                        blob_it->isMatch = true;
+                        break;
+                    }
                 }
-            }
 
+            }
+            //other note off
+            if(blob_it==blobs.end())
+            {
+                if(blob_it->ID != -1)
+                    noteOff(onTouch_list.cur());
+                onTouch_list.remove_N_next();
+            }
+            else
+                onTouch_list.go_next();
         }
-        //other note off
     }
 
     for(blob_it =blobs.begin();blob_it!=blobs.end();blob_it++)
     {
-        if(blob_it->x != X_FAR_AWAY)
-        {
-            playing_note.push_back(*blob_it);
-        }
+        if(!blob_it->isMatch)
+            onTouch_list.push_back(*blob_it);
     }
-        //when note on , access ID from ID queue
+    onTouch_list.go_tail();
+    for(int i = 0;i< min(MAX_TOUCH,onTouch_list.size());i++)
+    {
+        if(!onTouch_list.cur().isMatch)
+        {
+            if(ID_queue.empty())
+            {
+                noteOff(onTouch_list.first_touch->obj);
+                onTouch_list.first_touch = onTouch_list.first_touch->prev;
+            }
+            noteOn(onTouch_list.cur());
+        }
+        onTouch_list.go_next();
+    }
+    onTouch_list.first_touch = onTouch_list.cur_ptr();
 
 
 

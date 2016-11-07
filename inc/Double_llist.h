@@ -22,17 +22,20 @@ class Double_llist
         const T& front();
         const T& back();
         T& cur();
+
         void set_cur(T &set_to);
+
+        node_t* cur_ptr(){return current;};
         node_t* head(){if (!isEmpty()){return head_ptr;}};
         node_t* tail(){if (!isEmpty()){return tail_ptr;}};
         bool isEmpty();
         int size();
+        node_t* first_touch;
     private:
         int list_size;
         node_t* head_ptr;
         node_t* tail_ptr;
         node_t* current;
-
 };
 template <class T>
 void Double_llist<T>::push_back(T const &obj)

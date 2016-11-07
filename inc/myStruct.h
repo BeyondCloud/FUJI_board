@@ -7,12 +7,14 @@ struct blob_t
     int y;
     int size;
     int ID;
+    bool isMatch;
     blob_t()
     {
         ID = -1;
         x = 0;
         y = 0;
         size = 0;
+        isMatch = false;
     }
 };
 
