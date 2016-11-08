@@ -32,6 +32,7 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Unit filename="../inc/BlobDetector.h" />
+		<Unit filename="../inc/Double_llist.h" />
 		<Unit filename="../inc/FeyeMgr.h" />
 		<Unit filename="../inc/Midi_IO.h" />
 		<Unit filename="../inc/RtMidi.h" />

@@ -37,6 +37,7 @@ void FeyeMgr::fillCircle (Mat &img, Point center, int r)
 }
 void FeyeMgr::feye_tbl_create ()
 {
+
     //set fish eye configure over here
     feye.center.x = FeyeCenterX;
     feye.center.y = FeyeCenterY;
@@ -89,6 +90,7 @@ void FeyeMgr::feye_tbl_create ()
             }
          }
     }
+    cout<<"feye table complete"<<endl;
 
 }
 #undef LZZ_INLINE

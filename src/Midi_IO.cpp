@@ -8,10 +8,10 @@
 Midi_IO::Midi_IO ()
 {
 	midiout = new RtMidiOut();
-    midiout->openPort(1);
+    midiout->openPort(OPEN_PORT);
     for(int chnl =0;chnl<MAX_TOUCH;chnl++)
     {
-        selectInstrument(chnl,16);
+     //   selectInstrument(chnl,16);
         setMainVolume(chnl,127);
         setExpression(chnl,127);
         setPitchBendRange(chnl,BEND_RANGE_PM,0);

@@ -17,7 +17,6 @@ class BlobDetector
 
 public:
     BlobDetector ();
-    void resetBackground (Mat &src);
     void detect (Mat & src);
    // bool blob_increase_order(const blob_t l,const blob_t r);
     blob_t blob;
@@ -29,13 +28,12 @@ private:
     vector <SimpleBlobDetector::Params>::iterator itBLOB;
     vector <KeyPoint> keyImg;
     vector <KeyPoint>::iterator k;
-    Mat backGround;
     Ptr <Feature2D> b;
     Ptr <SimpleBlobDetector> sbd;
 };
 LZZ_INLINE void BlobDetector::detect (Mat & src)
 {
-	src -= backGround;
+
 	sbd->detect(src, keyImg, Mat());
 	blobs.clear();
 	for (k = keyImg.begin(); k != keyImg.end(); k++)

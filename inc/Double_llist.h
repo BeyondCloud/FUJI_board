@@ -12,15 +12,14 @@ class Double_llist
             node_t* prev;
         };
 
-        Double_llist():head_ptr(0){ list_size = 0;};
+        Double_llist(){head_ptr = NULL;tail_ptr = NULL;list_size=0;};
         void push_back(T const &obj);
         bool go_next();
         bool go_prev();
         bool go_tail();
         bool go_head();
         void remove(node_t* to_remove);
-        void remove_N_next();
-        void remove_N_prev();
+
         const T& front();
         const T& back();
         T& cur();
@@ -28,11 +27,12 @@ class Double_llist
         void set_cur(T &set_to);
 
         node_t* cur_ptr(){return current;};
-        node_t* head(){if (!isEmpty()){return head_ptr;}};
-        node_t* tail(){if (!isEmpty()){return tail_ptr;}};
+        node_t* head(){if (!isEmpty())return head_ptr;};
+        node_t* tail(){if (!isEmpty())return tail_ptr;};
         bool isEmpty();
         int size();
         node_t* first_touch;
+        node_t* off_ptr;
     private:
         int list_size;
         node_t* head_ptr;
@@ -48,6 +48,7 @@ void Double_llist<T>::push_back(T const &obj)
     {
         head_ptr = node;
         tail_ptr = node;
+        node->next = NULL;
     }
     else
     {
@@ -55,6 +56,8 @@ void Double_llist<T>::push_back(T const &obj)
         node->next = tail_ptr;
         tail_ptr = node;
     }
+    node->prev = NULL;
+
     list_size++;
 }
 template <class T>
@@ -62,22 +65,7 @@ void Double_llist<T>::set_cur(T &set_to)
 {
     current->obj = set_to;
 }
-template <class T>
-void Double_llist<T>::remove_N_next()
-{
-    node_t* to_remove = current;
-    if(current->next != 0)
-        current = current->next;
-    remove(to_remove);
-}
-template <class T>
-void Double_llist<T>::remove_N_prev()
-{
-    node_t* to_remove = current;
-    if(current->prev != 0)
-        current = current->prev;
-    remove(to_remove);
-}
+
 template <class T>
 void Double_llist<T>::remove(node_t *to_remove)
 {

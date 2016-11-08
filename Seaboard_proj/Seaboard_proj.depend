@@ -3,9 +3,13 @@
 	<opencv2/opencv.hpp>
 	"BlobDetector.h"
 
+1470749521 tor.h"
+
 1470730136 source:c:\users\administrator\desktop\midi_io\src\feyemgr.cpp
 	"FeyeMgr.h"
 	<iostream>
+
+1470747723 
 
 1470747723 source:c:\users\administrator\desktop\midi_io\src\midi_io.cpp
 	"Midi_IO.h"
@@ -26,6 +30,8 @@
 	<jack/midiport.h>
 	<jack/ringbuffer.h>
 
+1470724808 buffer.h>
+
 1470747723 source:c:\users\administrator\desktop\midi_io\src\synthmgr.cpp
 	<iostream>
 	"SynthMgr.h"
@@ -45,4 +51,49 @@
 	"SynthMgr.h"
 	"FeyeMgr.h"
 	"BlobDetector.h"
+
+1478249200 source:/home/pi/Desktop/midi_IO-master/src/BlobDetector.cpp
+	<opencv2/opencv.hpp>
+	"BlobDetector.h"
+
+1477124672 source:/home/pi/Desktop/midi_IO-master/src/FeyeMgr.cpp
+	"FeyeMgr.h"
+	<iostream>
+
+1478250704 source:/home/pi/Desktop/midi_IO-master/src/main.cpp
+	<opencv2/objdetect/objdetect.hpp>
+	<opencv2/highgui/highgui.hpp>
+	<opencv2/imgproc/imgproc.hpp>
+	<opencv2/calib3d/calib3d.hpp>
+	<stdio.h>
+	<time.h>
+	<math.h>
+	"myStruct.h"
+	"SynthMgr.h"
+	"FeyeMgr.h"
+	"BlobDetector.h"
+	<ncurses.h>
+	"raspicam_cv.h"
+
+1477149728 source:/home/pi/Desktop/midi_IO-master/src/Midi_IO.cpp
+	"Midi_IO.h"
+	"config.h"
+
+1476666752 source:/home/pi/Desktop/midi_IO-master/src/RtMidi.cpp
+	"RtMidi.h"
+	<sstream>
+	<CoreMIDI/CoreMIDI.h>
+	<CoreAudio/HostTime.h>
+	<CoreServices/CoreServices.h>
+	<pthread.h>
+	<sys/time.h>
+	<alsa/asoundlib.h>
+	<jack/jack.h>
+	<jack/midiport.h>
+	<jack/ringbuffer.h>
+
+1478511282 source:/home/pi/Desktop/midi_IO-master/src/SynthMgr.cpp
+	<iostream>
+	"SynthMgr.h"
+	"config.h"
 

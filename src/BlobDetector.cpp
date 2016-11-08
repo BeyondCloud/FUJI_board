@@ -18,25 +18,21 @@ BlobDetector::BlobDetector ()
     pDefaultBLOB.blobColor = 0;
 
     pDefaultBLOB.filterByArea = true;
-    pDefaultBLOB.minArea = 40;
+    pDefaultBLOB.minArea = 200;
     pDefaultBLOB.maxArea = 10000;
     pDefaultBLOB.filterByCircularity = false;
     pDefaultBLOB.filterByInertia = false;
     pDefaultBLOB.filterByConvexity = false;
 
-    backGround = Mat(CLIP_HEIGHT,CLIP_WIDTH,CV_8UC1);
 
 //       for (int i = 0; i<65536; i++)
 //           palette.push_back(Vec3b((uchar)rand(), (uchar)rand(), (uchar)rand()));
     pBLOB.push_back(pDefaultBLOB);
+
     b = SimpleBlobDetector::create(*pBLOB.begin());
     sbd = b.dynamicCast<SimpleBlobDetector>();
 }
-void BlobDetector::resetBackground (Mat &src)
-{
-    src.copyTo(backGround);
-    imshow("background",backGround);
-}
+
 void BlobDetector::debug_draw(Mat &src)
 {
     char sizeTxt[7] = "";
