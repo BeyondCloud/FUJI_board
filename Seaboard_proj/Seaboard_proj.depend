@@ -1,13 +1,13 @@
 # depslib dependency file v1.0
-1470822568 source:c:\users\administrator\desktop\midi_io\src\blobdetector.cpp
+1470995313 source:c:\users\administrator\desktop\midi_io\src\blobdetector.cpp
 	<opencv2/opencv.hpp>
 	"BlobDetector.h"
 
-1470730136 source:c:\users\administrator\desktop\midi_io\src\feyemgr.cpp
+1487911808 source:c:\users\administrator\desktop\midi_io\src\feyemgr.cpp
 	"FeyeMgr.h"
 	<iostream>
 
-1470747723 source:c:\users\administrator\desktop\midi_io\src\midi_io.cpp
+1470994276 source:c:\users\administrator\desktop\midi_io\src\midi_io.cpp
 	"Midi_IO.h"
 	"config.h"
 
@@ -26,12 +26,12 @@
 	<jack/midiport.h>
 	<jack/ringbuffer.h>
 
-1470747723 source:c:\users\administrator\desktop\midi_io\src\synthmgr.cpp
+1487916815 source:c:\users\administrator\desktop\midi_io\src\synthmgr.cpp
 	<iostream>
 	"SynthMgr.h"
 	"config.h"
 
-1470749521 source:c:\users\administrator\desktop\midi_io\src\main.cpp
+1487911982 source:c:\users\administrator\desktop\midi_io\src\main.cpp
 	<opencv2/objdetect/objdetect.hpp>
 	<opencv2/highgui/highgui.hpp>
 	<opencv2/imgproc/imgproc.hpp>
@@ -41,6 +41,7 @@
 	<conio.h>
 	<windows.h>
 	<time.h>
+	<math.h>
 	"myStruct.h"
 	"SynthMgr.h"
 	"FeyeMgr.h"

@@ -10,10 +10,18 @@ using namespace std;
 using namespace cv;
 SynthMgr::SynthMgr ()
 {
+<<<<<<< HEAD
     onTouch_list.first_touch = NULL;
     for(int id=0;id<MAX_TOUCH;id++)
     {
         ID_queue.push(id);
+=======
+
+    for(int id=0;id<MAX_TOUCH;id++)
+    {
+        ID_queue.push(id);
+        prev_blobs[id].ID = -1;
+>>>>>>> e1fd690205cfc75d95dfb53506f84d9a4d2ad698
     }
 
     Img = imread("line.jpg");
