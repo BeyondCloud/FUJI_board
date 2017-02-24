@@ -14,6 +14,7 @@ SynthMgr::SynthMgr ()
     for(int id=0;id<MAX_TOUCH;id++)
     {
         ID_queue.push(id);
+        ID_que_mutex[id] = true;
     }
 
     Img = imread("line.jpg");

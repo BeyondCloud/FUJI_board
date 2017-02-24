@@ -40,6 +40,7 @@ class SynthMgr
     private:
       Double_llist<blob_t> onTouch_list;
       queue<int> ID_queue;
+      bool ID_que_mutex[MAX_TOUCH]; //true if available
       note_t noteDown[MAX_TOUCH];
       static bool (valid_y) [CLIP_HEIGHT];
       bool exist_valid_row;
@@ -139,7 +140,7 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
                 //note off only when this note is playing before
                 if(onTouch_list.cur().ID != -1)
                 {
-//                    cout<<" list size :"<<onTouch_list.size()<<endl;
+                  //  cout<<" list size :"<<onTouch_list.size()<<endl;
 
                     onTouch_list.off_ptr = onTouch_list.cur_ptr();
                     noteOff(onTouch_list.cur());
@@ -167,7 +168,7 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
                     onTouch_list.off_ptr = onTouch_list.first_touch;
                     noteOff(onTouch_list.first_touch->obj);
                 }
-//                cout<<"  Q size "<<ID_queue.size();
+                cout<<"  Q size "<<ID_queue.size();
                 noteOn(onTouch_list.cur());
             }
             onTouch_list.go_next();
@@ -178,7 +179,7 @@ LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
 {
     if(ID_queue.empty())
     {
-//        cout<<"pool empty"<<endl;
+        cout<<"pool empty"<<endl;
         return;
     }
     //if no touch on previous frame
@@ -186,10 +187,12 @@ LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
         onTouch_list.first_touch = onTouch_list.cur_ptr();
 
     cur_blob.ID = ID_queue.front();
-    ID_queue.pop();
     int chnl = cur_blob.ID;
     int x = cur_blob.x;
     int y = cur_blob.y;
+
+    ID_queue.pop();
+    ID_que_mutex[chnl] = false;
     noteDown[chnl].tone = note_tbl[y][x].tone;
     noteDown[chnl].bend = note_tbl[y][x].bend;
     int velocity = min(cur_blob.size,127);
@@ -209,8 +212,12 @@ LZZ_INLINE void SynthMgr::noteOff(blob_t &prev_blob)
         onTouch_list.first_touch = NULL;
 
     int chnl = prev_blob.ID;
-    ID_queue.push(chnl);
     midi_io.noteOff(chnl,noteDown[chnl].tone,prev_blob.size);
+    if(ID_que_mutex[chnl] == false)
+    {
+        ID_queue.push(chnl);
+        ID_que_mutex[chnl]=true;
+    }
     cout<<chnl <<" noteOff"<<endl;
 }
 LZZ_INLINE void SynthMgr::notePlay(blob_t &cur_blob)

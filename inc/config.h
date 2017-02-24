@@ -1,12 +1,9 @@
 
 //=====key board config
 #define MAX_TOUCH 1
-#define CHANNEL_USED 1
-
-
 #define KEY 24
 #define LOWEST_TONE 53
-#define VOLUME_SCALE 2
+#define VOLUME_SCALE 3
 #define BEND_RANGE_PM 12 //PM : plus or minus
 #define BEND_RESOLUTION 64 //8192 or 64
 //======tone table config
