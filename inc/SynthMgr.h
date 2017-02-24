@@ -125,6 +125,7 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
                         blob_it->isMatch = true;
                         if(blob_it->ID != -1)
                         {
+
                             onTouch_list.set_cur(*blob_it);
                             notePlay(onTouch_list.cur());
                         }
@@ -140,7 +141,7 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
                 //note off only when this note is playing before
                 if(onTouch_list.cur().ID != -1)
                 {
-                  //  cout<<" list size :"<<onTouch_list.size()<<endl;
+                    cout<<" list size :"<<onTouch_list.size()<<endl;
 
                     onTouch_list.off_ptr = onTouch_list.cur_ptr();
                     noteOff(onTouch_list.cur());
@@ -168,7 +169,7 @@ LZZ_INLINE void SynthMgr::blob2midi(vector<blob_t> &blobs)
                     onTouch_list.off_ptr = onTouch_list.first_touch;
                     noteOff(onTouch_list.first_touch->obj);
                 }
-                cout<<"  Q size "<<ID_queue.size();
+//               cout<<"  Q size "<<ID_queue.size();
                 noteOn(onTouch_list.cur());
             }
             onTouch_list.go_next();
@@ -195,12 +196,13 @@ LZZ_INLINE void SynthMgr::noteOn( blob_t &cur_blob)
     ID_que_mutex[chnl] = false;
     noteDown[chnl].tone = note_tbl[y][x].tone;
     noteDown[chnl].bend = note_tbl[y][x].bend;
-    int velocity = min(cur_blob.size,127);
+    int velocity = min(cur_blob.size*VOLUME_SCALE,127);
+
     midi_io.setExpression(chnl,velocity);
     midi_io.pitchBend(chnl,0,64);
     midi_io.noteOn(chnl,noteDown[chnl].tone,velocity);
 
-    cout<<chnl <<" noteOn"<<endl;
+    cout<<chnl <<" noteOn"<<" vel "<<velocity<<endl;
 
 }
 
@@ -212,7 +214,7 @@ LZZ_INLINE void SynthMgr::noteOff(blob_t &prev_blob)
         onTouch_list.first_touch = NULL;
 
     int chnl = prev_blob.ID;
-    midi_io.noteOff(chnl,noteDown[chnl].tone,prev_blob.size);
+    midi_io.noteOff(chnl,noteDown[chnl].tone,prev_blob.size*VOLUME_SCALE);
     if(ID_que_mutex[chnl] == false)
     {
         ID_queue.push(chnl);
@@ -224,11 +226,12 @@ LZZ_INLINE void SynthMgr::notePlay(blob_t &cur_blob)
 {
     int chnl = cur_blob.ID;
     int bend = note_tbl[(cur_blob.y)][(cur_blob.x)].bend;
-    int volume = min(cur_blob.size,127);
+    int volume = min(cur_blob.size * VOLUME_SCALE,127);
     //clamp bend value between 0~127
     bend = max(min(127,64+(bend-noteDown[chnl].bend)),0);
     midi_io.pitchBend(chnl,0,bend);
     midi_io.setExpression(chnl,volume);
+    cout<<" vol"<<volume<<endl;
 }
 
 #undef LZZ_INLINE

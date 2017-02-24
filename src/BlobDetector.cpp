@@ -41,12 +41,15 @@ void BlobDetector::debug_draw(Mat &src)
 {
     char sizeTxt[7] = "";
     //Circle(src, center, radius, color, thickness=1, lineType=8, shift=0)
-    for (k = keyImg.begin(); k != keyImg.end(); k++)
-    {
-        circle(src,k->pt, k->size, 255,3);
-        sprintf(sizeTxt,"%d",k-keyImg.begin());
-        putText(src,sizeTxt ,k->pt, FONT_HERSHEY_DUPLEX,2,Scalar(255,255,255));
+	for (unsigned int i = 0; i < blobs.size(); i++)
+	{
+        Point p = Point(blobs[i].x,blobs[i].y);
+        circle(src,p, blobs[i].size, 255,3);
+
+        sprintf(sizeTxt,"%d",i);
+        putText(src,sizeTxt ,p, FONT_HERSHEY_DUPLEX,2,Scalar(255,255,255));
     }
+    cout<<"x"<<blobs[0].x<<"y"<<blobs[0].y<<endl;
     imshow("result",src);
 }
 

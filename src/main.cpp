@@ -51,11 +51,13 @@ int main(int argc, const char** argv)
 //
 //    cvtColor(frame,frame,CV_BGR2GRAY);
 //    circle(frame, Point(FeyeCenterX,FeyeCenterY), FeyeRadius, Scalar(255,255,255), 0);
+//    GaussianBlur(frame, frame, Size(5,5) ,0 ,0);
 //    imshow("orig",frame);
 //    FeyeMgr feyeMgr(720,1280);
 //    feyeMgr.defishNcrop(frame);
 //    imshow("cali",feyeMgr.defish_Img);
 //    waitKey(0);
+
 
 
 //    Mat frame;
@@ -85,41 +87,53 @@ int main(int argc, const char** argv)
 
 
 
-    Mat frame;
-    cap_init();
-    FeyeMgr feyeMgr(cap.get(CV_CAP_PROP_FRAME_HEIGHT),cap.get(CV_CAP_PROP_FRAME_WIDTH));
-    SynthMgr synthMgr;
-    BlobDetector blobdtr;
-    bool is_running = true;
-    Mat bg = imread("bg.jpg");
-    cvtColor(bg,bg,CV_BGR2GRAY);
-    blobdtr.resetBackground(bg);
-    while(is_running)
+//    Mat frame;
+//    cap_init();
+//    FeyeMgr feyeMgr(cap.get(CV_CAP_PROP_FRAME_HEIGHT),cap.get(CV_CAP_PROP_FRAME_WIDTH));
+//    SynthMgr synthMgr;
+//    BlobDetector blobdtr;
+//    bool is_running = true;
+//    Mat bg = imread("bg.jpg");
+//    cvtColor(bg,bg,CV_BGR2GRAY);
+//    blobdtr.resetBackground(bg);
+//    while(is_running)
+//    {
+//        waitKey(2);
+//        cap>>frame;
+//        cvtColor(frame,frame,CV_BGR2GRAY);
+//        feyeMgr.defishNcrop(frame);
+//        blobdtr.detect(feyeMgr.defish_Img);
+//        synthMgr.blob2midi(blobdtr.blobs);
+//        imshow("orig",feyeMgr.defish_Img);
+//        if (_kbhit() )
+//        {
+//            switch (_getch())
+//            {
+//                case 'e':
+//                    is_running = false;
+//                    break;
+//                case 's':
+//                    blobdtr.resetBackground(feyeMgr.defish_Img);
+//                    break;
+//                case 'o':
+//                    for(int i = 0; i < MAX_TOUCH ; i++)
+//                    synthMgr.midi_io.allNoteOff(i);
+//                    break;
+//            }
+//        }
+//    }
+
+
+    Midi_IO midi_io;
+    midi_io.noteOn(0,60,50);
+    sleep(1000);
+   for(int i = 0;i<127;i+=10)
     {
-        waitKey(2);
-        cap>>frame;
-        cvtColor(frame,frame,CV_BGR2GRAY);
-        feyeMgr.defishNcrop(frame);
-        blobdtr.detect(feyeMgr.defish_Img);
-        synthMgr.blob2midi(blobdtr.blobs);
-        imshow("orig",feyeMgr.defish_Img);
-        if (_kbhit() )
-        {
-            switch (_getch())
-            {
-                case 'e':
-                    is_running = false;
-                    break;
-                case 's':
-                    blobdtr.resetBackground(feyeMgr.defish_Img);
-                    break;
-                case 'o':
-                    for(int i = 0; i < MAX_TOUCH; i++)
-                    synthMgr.midi_io.allNoteOff(i);
-                    break;
-            }
-        }
+       midi_io.setExpression(0,i);
+       sleep(1000);
     }
+    midi_io.noteOff(0,60,50);
+
 
     return 0;
 }
