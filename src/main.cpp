@@ -28,8 +28,63 @@ void cap_init()
     cap.set(CV_CAP_PROP_FRAME_WIDTH,1280);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT,720);
 }
+void drawLine( Mat img, Point start, Point end )
+{
+  int thickness = 2;
+  int lineType = 8;
+  line( img,
+        start,
+        end,
+        Scalar( 0, 0, 0 ),
+        thickness,
+        lineType );
+}
 int main(int argc, const char** argv)
 {
+    //test camera
+//    Mat frame = imread("orig.png");
+//    if(!frame.data)
+//    {
+//        cout<<"read error";
+//        return -1;
+//    }
+//
+//    cvtColor(frame,frame,CV_BGR2GRAY);
+//    circle(frame, Point(FeyeCenterX,FeyeCenterY), FeyeRadius, Scalar(255,255,255), 0);
+//    imshow("orig",frame);
+//    FeyeMgr feyeMgr(720,1280);
+//    feyeMgr.defishNcrop(frame);
+//    imshow("cali",feyeMgr.defish_Img);
+//    waitKey(0);
+
+
+//    Mat frame;
+//    cap_init();
+//    FeyeMgr feyeMgr(cap.get(CV_CAP_PROP_FRAME_HEIGHT),cap.get(CV_CAP_PROP_FRAME_WIDTH));
+//    bool is_running = true;
+//    while(is_running)
+//    {
+//        waitKey(2);
+//        cap>>frame;
+//        cvtColor(frame,frame,CV_BGR2GRAY);
+//        //drawLine(frame,Point(FeyeCenterX,0),Point(FeyeCenterX,720));
+//        //drawLine(frame,Point(0,FeyeCenterY),Point(1280,FeyeCenterY));
+//        feyeMgr.defishNcrop(frame);
+//        //imshow("orig",frame);
+//        imshow("orig",feyeMgr.defish_Img);
+//        if (_kbhit() )
+//        {
+//            switch (_getch())
+//            {
+//                case 'e':
+//                    is_running = false;
+//                    break;
+//            }
+//        }
+//    }
+
+
+
     Mat frame;
     cap_init();
     FeyeMgr feyeMgr(cap.get(CV_CAP_PROP_FRAME_HEIGHT),cap.get(CV_CAP_PROP_FRAME_WIDTH));

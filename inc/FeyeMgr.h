@@ -22,12 +22,16 @@ public:
     void fillCircle (Mat &img, Point center, int r);
     void defishNcrop (Mat & gray_scale_image);
     Mat defish_Img;
+    double lagrange(double x);
 private:
     void feye_tbl_create ();
     uchar * src_ptr;
     uchar * dst_ptr;
     Mat map_x,map_y;
     feye_t feye;
+    double test;
+
+
 };
 LZZ_INLINE void FeyeMgr::defishNcrop (Mat & src)
 {

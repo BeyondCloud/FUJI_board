@@ -1,4 +1,3 @@
-
 // SynthMgr.cpp
 //
 #include <iostream>
@@ -11,8 +10,11 @@ using namespace std;
 using namespace cv;
 SynthMgr::SynthMgr ()
 {
-
-    ID = 0;
+    onTouch_list.first_touch = NULL;
+    for(int id=0;id<MAX_TOUCH;id++)
+    {
+        ID_queue.push(id);
+    }
 
     Img = imread("line.jpg");
     if(!Img.data)

@@ -64,10 +64,7 @@ void FeyeMgr::feye_tbl_create ()
             if (0.0<=r&&r<=1.0)
             {
                 double nr;
-                if(x-feye.center.x < 0)
-                    nr = 0.04*r*r*r*r+0.5*r*r*r-2.0*r*r + 2.5*r+0.0051 ;
-                else
-                    nr = 0.45*r*r*r*r+0.14*r*r*r-2.1*r*r + 2.5*r+0.0051 ;
+                nr = lagrange(r);
                 if (0.0 <= nr)
                 {
                     double nxn = nr*cos(theta);
@@ -90,5 +87,24 @@ void FeyeMgr::feye_tbl_create ()
          }
     }
 
+}
+double FeyeMgr::lagrange(double x)
+{
+
+    double mult,sum = 0;
+    const double lag_x[LagPnt] = {0.0,0.11,0.265,0.503,0.768};
+    const double lag_y[LagPnt] = {0.0,0.27,0.506,0.688,0.772};
+    for(int i=0;i<LagPnt;i++)
+    {
+        mult=1;
+
+        for(int j=0;j<LagPnt;j++)
+        {
+            if(j!=i)
+                mult*=(x-lag_x[j])/(lag_x[i]-lag_x[j]);
+        }
+        sum+=mult*lag_y[i];
+    }
+    return sum;
 }
 #undef LZZ_INLINE
