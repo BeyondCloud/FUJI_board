@@ -40,12 +40,11 @@ LZZ_INLINE void BlobDetector::detect (Mat & src)
 	blobs.clear();
 	for (k = keyImg.begin(); k != keyImg.end(); k++)
     {
-            blob.x = k->pt.x;
-			blob.y = k->pt.y;
-			blob.size = (int)k->size;
-			blobs.push_back(blob);
-
-	}
+	    blob.x = k->pt.x;
+	    blob.y = k->pt.y;
+	    blob.size = (int)k->size;
+	    blobs.push_back(blob);
+    }
 
 }
 #undef LZZ_INLINE
